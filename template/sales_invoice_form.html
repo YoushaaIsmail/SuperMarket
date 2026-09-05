@@ -1,0 +1,716 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل فاتورة بيع{% else %}إضافة فاتورة بيع جديدة{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث بيانات الفاتورة{% else %}إدخال فاتورة بيع جديدة إلى النظام{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center">
+        <i class="fas fa-file-invoice text-primary me-2"></i>
+        <span>بيانات الفاتورة</span>
+    </div>
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {{ formset.management_form }}
+
+            <!-- Invoice Details -->
+            <div class="row g-3">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">
+                        <i class="fas fa-hashtag text-primary me-1"></i> رقم الفاتورة
+                    </label>
+                    {% if form.instance.pk %}
+                        <input type="text" class="form-control form-control-modern" value="{{ form.instance.invoice_number }}" readonly style="background: #0f1825; color: #b8c9e0;">
+                    {% else %}
+                        <input type="text" class="form-control form-control-modern" id="generated-invoice-number" readonly style="background: #0f1825; color: #b8c9e0;">
+                        {{ form.invoice_number.as_hidden }}
+                    {% endif %}
+                    <small class="text-muted">يتم توليد الرقم تلقائياً.</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.customer.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-user text-primary me-1"></i> العميل
+                    </label>
+                    {{ form.customer }}
+                    {{ form.customer.errors }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.exchange_rate.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-dollar-sign text-primary me-1"></i> سعر الصرف
+                    </label>
+                    {{ form.exchange_rate }}
+                    {{ form.exchange_rate.errors }}
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.Discount.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-percent text-primary me-1"></i> الخصم ($)
+                    </label>
+                    {{ form.Discount }}
+                    {{ form.Discount.errors }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-sticky-note text-primary me-1"></i> ملاحظات
+                    </label>
+                    {{ form.notes }}
+                    {{ form.notes.errors }}
+                </div>
+            </div>
+
+            <!-- Products (Inline Formset) -->
+            <hr class="border-secondary">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h4 class="text-white">
+                    <i class="fas fa-boxes text-primary me-2"></i> المنتجات
+                </h4>
+                <button type="button" class="btn btn-primary-custom" id="add-detail-btn">
+                    <i class="fas fa-plus me-1"></i> إضافة منتج
+                </button>
+            </div>
+
+            <div id="detail-forms">
+                {% for detail_form in formset %}
+                    <div class="detail-form card-modern mb-3 p-3" style="border-color: #25324a;">
+                        {{ detail_form.id }}
+                        {{ detail_form.DELETE }}
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3 mb-2">
+                                <label for="{{ detail_form.product.id_for_label }}" class="form-label-modern small">المنتج</label>
+                                <div class="input-group">
+                                    {{ detail_form.product }}
+                                    <button type="button" class="btn btn-outline-primary scan-barcode-btn" data-detail-index="{{ forloop.counter0 }}" style="border-color: #4a90d9; color: #6ea8fe;">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                </div>
+                                {{ detail_form.product.errors }}
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label for="{{ detail_form.quantity.id_for_label }}" class="form-label-modern small">الكمية</label>
+                                {{ detail_form.quantity }}
+                                {{ detail_form.quantity.errors }}
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label for="{{ detail_form.price.id_for_label }}" class="form-label-modern small">سعر الوحدة ($)</label>
+                                {{ detail_form.price }}
+                                {{ detail_form.price.errors }}
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="form-label-modern small">المجموع ($)</label>
+                                <input type="text" class="form-control form-control-modern subtotal-display" readonly value="0.00" style="background: #0f1825; color: #b8c9e0;">
+                            </div>
+                            <div class="col-md-2 mb-2 d-flex align-items-center gap-2">
+                                <div class="form-check">
+                                    {{ detail_form.Is_package }}
+                                    <label for="{{ detail_form.Is_package.id_for_label }}" class="form-check-label text-muted">جملة</label>
+                                </div>
+                                {% if detail_form.instance.pk %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-detail" title="حذف هذا المنتج">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted py-4" id="empty-details-msg">
+                        <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+                        لا توجد منتجات مضافة. اضغط على "إضافة منتج" لإضافة منتجات.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Totals Summary -->
+            <div class="row mt-4">
+                <div class="col-md-6 offset-md-6">
+                    <div class="card-modern p-3" style="border-color: #25324a;">
+                        <h5 class="text-white mb-3">إجمالي الفاتورة</h5>
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted">المجموع ($):</td>
+                                <td class="text-end text-white"><strong id="total-amount-usd">0.00</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">الخصم ($):</td>
+                                <td class="text-end text-white"><strong id="total-discount-usd">0.00</strong></td>
+                            </tr>
+                            <tr class="table-primary" style="background: rgba(74, 144, 217, 0.15);">
+                                <td class="text-white"><strong>الإجمالي النهائي ($):</strong></td>
+                                <td class="text-end text-white"><strong id="final-total-usd">0.00</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">سعر الصرف (ل.س):</td>
+                                <td class="text-end text-white"><strong id="exchange-rate-display">-</strong></td>
+                            </tr>
+                            <tr class="table-success" style="background: rgba(40, 167, 69, 0.15);">
+                                <td class="text-white"><strong>الإجمالي بالليرة السورية:</strong></td>
+                                <td class="text-end text-white"><strong id="final-total-syp">0.00</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap mt-4">
+                <button type="submit" class="btn btn-primary-custom">
+                    <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                    {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                </button>
+                <a href="{% url 'app:sales_invoice_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                    <i class="fas fa-times me-1"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scanner Modal (Dark Theme) -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #141e2d; border: 1px solid #25324a;">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="scannerModalLabel">
+                    <i class="fas fa-camera text-primary me-2"></i> مسح الباركود
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader" style="width:100%; min-height: 250px; background: #0a121f; border-radius: 12px;"></div>
+                <div class="mt-3 text-center text-muted">
+                    <i class="fas fa-info-circle me-1"></i> قم بتوجيه الكاميرا نحو الباركود أو ارفع صورة
+                </div>
+                <div class="mt-2">
+                    <label class="form-label-modern">رفع صورة باركود</label>
+                    <input type="file" id="barcode-image-input" accept="image/*" class="form-control form-control-modern">
+                </div>
+                <div id="scan-status" class="mt-2"></div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-color: #4a5568; color: #b8c9e0;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- html5-qrcode Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ============================================================
+        // 1. تطبيق كلاسات Bootstrap على حقول النموذج
+        // ============================================================
+        const formFields = document.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
+        formFields.forEach(field => {
+            if (field.id && field.id.startsWith('id_')) {
+                if (!field.closest('.input-group') && !field.closest('.form-check')) {
+                    field.classList.add('form-control', 'form-control-modern');
+                }
+            }
+        });
+
+        // ============================================================
+        // 2. دوال حساب المجاميع
+        // ============================================================
+        function calculateRow(index) {
+            const form = document.querySelector(`.detail-form:has([name="details-${index}-product"])`);
+            if (!form) return;
+            const qtyInput = form.querySelector(`[name="details-${index}-quantity"]`);
+            const priceInput = form.querySelector(`[name="details-${index}-price"]`);
+            const subtotalDisplay = form.querySelector('.subtotal-display');
+            if (!qtyInput || !priceInput || !subtotalDisplay) return;
+
+            const qty = parseFloat(qtyInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const subtotal = qty * price;
+            subtotalDisplay.value = subtotal.toFixed(2);
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const detailForms = document.querySelectorAll('.detail-form');
+            let totalUsd = 0;
+            detailForms.forEach(form => {
+                if (form.style.display !== 'none') {
+                    const subtotalInput = form.querySelector('.subtotal-display');
+                    if (subtotalInput) {
+                        totalUsd += parseFloat(subtotalInput.value) || 0;
+                    }
+                }
+            });
+
+            const discountInput = document.querySelector('#id_Discount');
+            const discount = parseFloat(discountInput ? discountInput.value : 0) || 0;
+            const finalTotal = Math.max(totalUsd - discount, 0);
+
+            document.getElementById('total-amount-usd').textContent = totalUsd.toFixed(2);
+            document.getElementById('total-discount-usd').textContent = discount.toFixed(2);
+            document.getElementById('final-total-usd').textContent = finalTotal.toFixed(2);
+
+            // حساب بالليرة السورية
+            const exchangeRateSelect = document.querySelector('#id_exchange_rate');
+            const rateDisplay = document.getElementById('exchange-rate-display');
+            let rate = 0;
+            if (exchangeRateSelect && exchangeRateSelect.value) {
+                const selectedOption = exchangeRateSelect.options[exchangeRateSelect.selectedIndex];
+                const text = selectedOption.text;
+                const rateMatch = text.match(/= (\d+\.?\d*)/);
+                rate = rateMatch ? parseFloat(rateMatch[1]) : 0;
+                rateDisplay.textContent = rate.toFixed(2);
+            } else {
+                rateDisplay.textContent = '-';
+            }
+
+            if (rate > 0) {
+                const finalSyp = finalTotal * rate;
+                document.getElementById('final-total-syp').textContent = finalSyp.toFixed(2);
+            } else {
+                document.getElementById('final-total-syp').textContent = '0.00';
+            }
+        }
+
+        // ============================================================
+        // 3. ربط أحداث الصفوف
+        // ============================================================
+        function bindRowEvents(form) {
+            const index = parseInt(form.dataset.index);
+            const qtyInput = form.querySelector(`[name="details-${index}-quantity"]`);
+            const priceInput = form.querySelector(`[name="details-${index}-price"]`);
+            const packageCheckbox = form.querySelector(`[name="details-${index}-Is_package"]`);
+            const productSelect = form.querySelector(`[name="details-${index}-product"]`);
+
+            if (qtyInput) {
+                qtyInput.addEventListener('input', function() { calculateRow(index); });
+            }
+            if (priceInput) {
+                priceInput.addEventListener('input', function() { calculateRow(index); });
+            }
+            if (packageCheckbox) {
+                packageCheckbox.addEventListener('change', function() {
+                    // تحديث السعر حسب الجملة/قطاعي
+                    if (productSelect && productSelect.value) {
+                        const selectedOption = productSelect.options[productSelect.selectedIndex];
+                        const unit = parseFloat(selectedOption.dataset.unitPrice) || 0;
+                        const whole = parseFloat(selectedOption.dataset.wholesalePrice) || 0;
+                        const price = this.checked ? whole : unit;
+                        if (priceInput) priceInput.value = price.toFixed(2);
+                        calculateRow(index);
+                    }
+                });
+            }
+            if (productSelect) {
+                productSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const unit = parseFloat(selectedOption.dataset.unitPrice) || 0;
+                    const whole = parseFloat(selectedOption.dataset.wholesalePrice) || 0;
+                    const isPackage = packageCheckbox ? packageCheckbox.checked : false;
+                    const price = isPackage ? whole : unit;
+                    if (priceInput) priceInput.value = price.toFixed(2);
+                    calculateRow(index);
+                });
+                // تعيين السعر الأولي
+                if (productSelect.value) {
+                    const selectedOption = productSelect.options[productSelect.selectedIndex];
+                    const unit = parseFloat(selectedOption.dataset.unitPrice) || 0;
+                    const whole = parseFloat(selectedOption.dataset.wholesalePrice) || 0;
+                    const isPackage = packageCheckbox ? packageCheckbox.checked : false;
+                    const price = isPackage ? whole : unit;
+                    if (priceInput) priceInput.value = price.toFixed(2);
+                    calculateRow(index);
+                }
+            }
+        }
+
+        // ============================================================
+        // 4. إدارة المنتجات الديناميكية (إضافة/حذف)
+        // ============================================================
+        const addButton = document.getElementById('add-detail-btn');
+        const container = document.getElementById('detail-forms');
+        const totalForms = document.getElementById('id_details-TOTAL_FORMS');
+        const emptyMsg = document.getElementById('empty-details-msg');
+
+        function updateEmptyMessage() {
+            const forms = container.querySelectorAll('.detail-form');
+            if (forms.length === 0) {
+                if (!emptyMsg) {
+                    const msg = document.createElement('div');
+                    msg.id = 'empty-details-msg';
+                    msg.className = 'text-center text-muted py-4';
+                    msg.innerHTML = `
+                        <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+                        لا توجد منتجات مضافة. اضغط على "إضافة منتج" لإضافة منتجات.
+                    `;
+                    container.appendChild(msg);
+                }
+            } else {
+                const existing = document.getElementById('empty-details-msg');
+                if (existing) existing.remove();
+            }
+        }
+
+        addButton.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const lastForm = container.querySelector('.detail-form:last-child');
+
+            if (!lastForm) {
+                // حالة عدم وجود أي منتج: نضيف نموذجاً جديداً عن طريق استنساخ نموذج مخفي أو طلب AJAX
+                // لكننا نفضل استخدام استنساخ نموذج فارغ موجود (نستخدم حلقة for لإيجاد نموذج)
+                // الحل البسيط: نضيف نموذجاً يدوياً
+                const newForm = document.createElement('div');
+                newForm.className = 'detail-form card-modern mb-3 p-3';
+                newForm.style.borderColor = '#25324a';
+                // نملأه بالحقول الأساسية (يمكننا الحصول على HTML من نموذج موجود لكنه مخفي)
+                // ننشئه من الصفر (بسيط)
+                const newIndex = formCount;
+                newForm.innerHTML = `
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label-modern small">المنتج</label>
+                            <div class="input-group">
+                                <select name="details-${newIndex}-product" id="id_details-${newIndex}-product" class="form-control product-select">
+                                    <option value="">---------</option>
+                                    {% for product in products %}
+                                        <option value="{{ product.id }}" data-unit-price="{{ product.sale_price }}" data-wholesale-price="{{ product.sale_priceAmount }}">{{ product.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-outline-primary scan-barcode-btn" data-detail-index="${newIndex}" style="border-color: #4a90d9; color: #6ea8fe;">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label-modern small">الكمية</label>
+                            <input type="number" name="details-${newIndex}-quantity" id="id_details-${newIndex}-quantity" class="form-control quantity-input" value="1" min="1">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label-modern small">سعر الوحدة ($)</label>
+                            <input type="number" name="details-${newIndex}-price" id="id_details-${newIndex}-price" class="form-control price-input" step="0.01">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label-modern small">المجموع ($)</label>
+                            <input type="text" class="form-control form-control-modern subtotal-display" readonly value="0.00" style="background: #0f1825; color: #b8c9e0;">
+                        </div>
+                        <div class="col-md-2 mb-2 d-flex align-items-center gap-2">
+                            <div class="form-check">
+                                <input type="checkbox" name="details-${newIndex}-Is_package" id="id_details-${newIndex}-Is_package" class="form-check-input package-checkbox">
+                                <label for="id_details-${newIndex}-Is_package" class="form-check-label text-muted">جملة</label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(newForm);
+                totalForms.value = newIndex + 1;
+                updateEmptyMessage();
+                // تطبيق الكلاسات
+                newForm.querySelectorAll('input:not([type="hidden"]), select').forEach(f => {
+                    if (!f.closest('.input-group') && !f.closest('.form-check')) {
+                        f.classList.add('form-control', 'form-control-modern');
+                    }
+                });
+                // ربط الأحداث والمسح
+                newForm.dataset.index = newIndex;
+                bindRowEvents(newForm);
+                attachScanListeners();
+                updateTotals();
+                return;
+            }
+
+            // استنساخ آخر نموذج
+            const newForm = lastForm.cloneNode(true);
+            const inputs = newForm.querySelectorAll('input:not([type="hidden"]):not([readonly]), select');
+            inputs.forEach(function(input) {
+                if (input.type !== 'checkbox') {
+                    input.value = '';
+                } else {
+                    input.checked = false;
+                }
+            });
+            const formRegex = new RegExp('details-(\\d+)-', 'g');
+            const newIndex = formCount;
+            newForm.innerHTML = newForm.innerHTML.replace(formRegex, `details-${newIndex}-`);
+            newForm.querySelectorAll('[id]').forEach(function(el) {
+                el.id = el.id.replace(formRegex, `details-${newIndex}-`);
+            });
+            // إزالة DELETE
+            const deleteCheckbox = newForm.querySelector('[name$="-DELETE"]');
+            if (deleteCheckbox) deleteCheckbox.remove();
+            const removeBtn = newForm.querySelector('.remove-detail');
+            if (removeBtn) removeBtn.remove();
+            // تحديث زر المسح
+            const scanBtn = newForm.querySelector('.scan-barcode-btn');
+            if (scanBtn) scanBtn.dataset.detailIndex = newIndex;
+
+            container.appendChild(newForm);
+            totalForms.value = formCount + 1;
+            updateEmptyMessage();
+
+            // تطبيق الكلاسات
+            newForm.querySelectorAll('input:not([type="hidden"]), select').forEach(f => {
+                if (!f.closest('.input-group') && !f.closest('.form-check')) {
+                    f.classList.add('form-control', 'form-control-modern');
+                }
+            });
+            newForm.dataset.index = newIndex;
+            bindRowEvents(newForm);
+            attachScanListeners();
+            updateTotals();
+        });
+
+        // حذف منتج (تحديد DELETE)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-detail')) {
+                const btn = e.target.closest('.remove-detail');
+                const form = btn.closest('.detail-form');
+                const deleteInput = form.querySelector('[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    form.style.display = 'none';
+                    updateEmptyMessage();
+                    updateTotals();
+                }
+            }
+        });
+
+        // ============================================================
+        // 5. ماسح الباركود بالكاميرا
+        // ============================================================
+        let html5QrCode = null;
+        let currentDetailIndex = null;
+        const scannerModal = new bootstrap.Modal(document.getElementById('scannerModal'));
+        const statusDiv = document.getElementById('scan-status');
+        const modalElement = document.getElementById('scannerModal');
+
+        function getProductSelect(index) {
+            const form = document.querySelector(`.detail-form:has([name="details-${index}-product"])`);
+            if (form) return form.querySelector(`[name="details-${index}-product"]`);
+            return null;
+        }
+
+        function getPriceInput(index) {
+            const form = document.querySelector(`.detail-form:has([name="details-${index}-product"])`);
+            if (form) return form.querySelector(`[name="details-${index}-price"]`);
+            return null;
+        }
+
+        function getPackageCheckbox(index) {
+            const form = document.querySelector(`.detail-form:has([name="details-${index}-product"])`);
+            if (form) return form.querySelector(`[name="details-${index}-Is_package"]`);
+            return null;
+        }
+
+        function attachScanListeners() {
+            document.querySelectorAll('.scan-barcode-btn').forEach(function(btn) {
+                if (!btn.dataset.listenerAdded) {
+                    btn.dataset.listenerAdded = 'true';
+                    btn.addEventListener('click', function() {
+                        currentDetailIndex = this.dataset.detailIndex;
+                        statusDiv.innerHTML = '';
+                        scannerModal.show();
+                        setTimeout(() => startScanner(), 600);
+                    });
+                }
+            });
+        }
+
+        function startScanner() {
+            const readerElement = document.getElementById('reader');
+            if (!readerElement) {
+                alert('عنصر القارئ غير موجود.');
+                return;
+            }
+
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {}).then(() => html5QrCode.clear());
+            }
+
+            if (typeof Html5Qrcode === 'undefined') {
+                alert('مكتبة المسح غير محملة.');
+                scannerModal.hide();
+                return;
+            }
+
+            html5QrCode = new Html5Qrcode("reader");
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.CODABAR
+                ]
+            };
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanError
+            ).catch(function(err) {
+                console.warn("Camera error:", err);
+                alert('تعذر تشغيل الكاميرا. يمكنك رفع صورة تحتوي على الباركود.');
+                document.getElementById('barcode-image-input').click();
+            });
+
+            function onScanSuccess(decodedText) {
+                statusDiv.innerHTML = `<div class="alert alert-info" style="background: rgba(23, 162, 184, 0.1); border-color: #63d4e0; color: #63d4e0;">تم مسح الباركود: ${decodedText}</div>`;
+
+                fetch(`/app/products/by-barcode/?barcode=${encodeURIComponent(decodedText)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            const productSelect = getProductSelect(currentDetailIndex);
+                            if (productSelect) {
+                                for (let i = 0; i < productSelect.options.length; i++) {
+                                    if (productSelect.options[i].value == data.product_id) {
+                                        productSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                                // تعيين السعر حسب حالة الجملة
+                                const packageCheckbox = getPackageCheckbox(currentDetailIndex);
+                                const priceInput = getPriceInput(currentDetailIndex);
+                                if (priceInput && packageCheckbox) {
+                                    const isPackage = packageCheckbox.checked;
+                                    const price = isPackage ? data.sale_priceAmount : data.sale_price;
+                                    priceInput.value = price.toFixed(2);
+                                }
+                                // حساب المجموع
+                                const index = parseInt(currentDetailIndex);
+                                calculateRow(index);
+                                statusDiv.innerHTML += `<div class="alert alert-success" style="background: rgba(40, 167, 69, 0.1); border-color: #6fcf97; color: #6fcf97;">تم اختيار المنتج: ${data.product_name}</div>`;
+                                scannerModal.hide();
+                            }
+                        } else {
+                            const addUrl = `{% url 'app:product_add' %}?barcode=${encodeURIComponent(decodedText)}`;
+                            statusDiv.innerHTML += `
+                                <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border-color: #f4c542; color: #f4c542;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>المنتج غير موجود</strong> في قاعدة البيانات.
+                                    <a href="${addUrl}" class="btn btn-sm btn-success ms-2" target="_blank" style="background: #28a745; border: none;">
+                                        <i class="fas fa-plus"></i> إضافة المنتج
+                                    </a>
+                                    <button class="btn btn-sm btn-secondary ms-2" onclick="document.getElementById('scannerModal').dispatchEvent(new Event('hidden.bs.modal'));">إغلاق</button>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(() => {
+                        statusDiv.innerHTML += `<div class="alert alert-danger" style="background: rgba(220, 53, 69, 0.1); border-color: #f28b82; color: #f28b82;">خطأ في الاتصال بالخادم.</div>`;
+                    });
+
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {}).then(() => html5QrCode.clear());
+                }
+            }
+
+            function onScanError(err) {}
+
+            const fileInput = document.getElementById('barcode-image-input');
+            fileInput.onchange = function() {
+                if (this.files.length) {
+                    const file = this.files[0];
+                    if (html5QrCode) {
+                        html5QrCode.stop().catch(() => {}).then(() => {
+                            html5QrCode.clear();
+                            html5QrCode.scanFile(file, true)
+                                .then(decodedText => {
+                                    statusDiv.innerHTML = `<div class="alert alert-info" style="background: rgba(23, 162, 184, 0.1); border-color: #63d4e0; color: #63d4e0;">تم مسح الباركود من الصورة: ${decodedText}</div>`;
+                                    onScanSuccess(decodedText);
+                                })
+                                .catch(() => {
+                                    alert('فشل قراءة الباركود من الصورة.');
+                                });
+                        });
+                    }
+                }
+            };
+        }
+
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {}).then(() => html5QrCode.clear());
+            }
+            document.getElementById('barcode-image-input').value = '';
+        });
+
+        // ربط أزرار المسح عند تحميل الصفحة
+        attachScanListeners();
+
+        // ============================================================
+        // 6. توليد رقم الفاتورة (طلب AJAX)
+        // ============================================================
+        fetch('/app/generate-invoice-number/')
+            .then(response => response.json())
+            .then(data => {
+                const displayInput = document.getElementById('generated-invoice-number');
+                const hiddenInput = document.querySelector('input[name="invoice_number"]');
+                if (displayInput && data.invoice_number) {
+                    displayInput.value = data.invoice_number;
+                    if (hiddenInput) hiddenInput.value = data.invoice_number;
+                }
+            })
+            .catch(() => console.warn('تعذر توليد رقم الفاتورة.'));
+
+        // ============================================================
+        // 7. اختصار لوحة المفاتيح Ctrl+Shift+S لفتح الماسح
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                const firstScanBtn = document.querySelector('.scan-barcode-btn');
+                if (firstScanBtn) firstScanBtn.click();
+            }
+        });
+
+        // ============================================================
+        // 8. تحديث الرسالة الفارغة عند التحميل
+        // ============================================================
+        updateEmptyMessage();
+
+        // ============================================================
+        // 9. ربط أحداث الخصم وسعر الصرف
+        // ============================================================
+        const discountInput = document.querySelector('#id_Discount');
+        if (discountInput) discountInput.addEventListener('input', updateTotals);
+        const exchangeRateSelect = document.querySelector('#id_exchange_rate');
+        if (exchangeRateSelect) exchangeRateSelect.addEventListener('change', updateTotals);
+
+        // ============================================================
+        // 10. تهيئة الصفوف الموجودة
+        // ============================================================
+        document.querySelectorAll('.detail-form').forEach(form => {
+            const index = parseInt(form.dataset.index);
+            if (!isNaN(index)) {
+                bindRowEvents(form);
+                calculateRow(index);
+            }
+        });
+        updateTotals();
+
+    });
+</script>
+{% endblock %}

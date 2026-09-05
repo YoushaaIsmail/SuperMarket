@@ -1,0 +1,54 @@
+{% extends 'base_sidebar_hr.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-trash-alt text-danger me-2"></i> تأكيد الحذف
+        </h1>
+        <p class="page-subtitle mt-1">عملية حذف لا يمكن التراجع عنها</p>
+    </div>
+</div>
+
+<!-- Delete Confirmation Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card-modern" style="border-color: #dc3545; border-width: 2px;">
+            <div class="card-header d-flex align-items-center" style="background: rgba(220, 53, 69, 0.08); border-bottom-color: #dc3545;">
+                <i class="fas fa-exclamation-triangle text-danger me-2 fa-lg"></i>
+                <span class="fw-bold text-danger">تأكيد حذف الموظف</span>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-slash fa-4x text-danger opacity-50 mb-3"></i>
+                    <h5 class="text-white">هل أنت متأكد من حذف الموظف التالي؟</h5>
+                    <p class="fs-4 fw-bold text-primary">{{ object.name }}</p>
+                    <p class="text-muted">
+                        <i class="fas fa-briefcase me-1"></i> {{ object.position|default:"بدون وظيفة" }}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-phone me-1"></i> {{ object.phone|default:"لا يوجد هاتف" }}
+                    </p>
+                </div>
+
+                <div class="alert alert-danger bg-transparent border-danger text-white-50 rounded-4 p-3" style="background: rgba(220, 53, 69, 0.05);">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>تنبيه:</strong> سيتم حذف جميع البيانات المرتبطة بهذا الموظف (الرواتب، المكافآت، الخصومات، سندات الصرف، العلاوات، إلخ).
+                </div>
+
+                <form method="post" class="mt-4 d-flex gap-3 flex-wrap">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="background: #dc3545; border: none; padding: 10px 30px; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 14px rgba(220, 53, 69, 0.3);">
+                        <i class="fas fa-check me-1"></i> نعم، احذف
+                    </button>
+                    <a href="{% url 'app:employee_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0; padding: 10px 30px; border-radius: 12px;">
+                        <i class="fas fa-times me-1"></i> إلغاء
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

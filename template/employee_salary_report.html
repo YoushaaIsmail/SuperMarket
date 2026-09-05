@@ -1,0 +1,223 @@
+{% extends 'base_sidebar_hr.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-file-invoice text-primary me-2"></i> تقرير الراتب الشهري
+        </h1>
+        <p class="page-subtitle mt-1">{{ employee.name }} - {{ employee.position|default:"بدون وظيفة" }}</p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:employee_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+            <i class="fas fa-arrow-right me-1"></i> العودة إلى الموظفين
+        </a>
+    </div>
+</div>
+
+<!-- Filter Form -->
+<div class="card-modern mb-4">
+    <div class="card-header d-flex align-items-center">
+        <i class="fas fa-sliders-h text-primary me-2"></i>
+        <span>خيارات التقرير</span>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="up_to_date" class="form-label-modern">
+                    <i class="fas fa-calendar-alt text-primary me-1"></i> تاريخ الانتهاء
+                </label>
+                <input type="date" name="up_to_date" id="up_to_date" class="form-control form-control-modern" value="{{ up_to_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="advance_installments" class="form-label-modern">
+                    <i class="fas fa-hand-holding-usd text-primary me-1"></i> عدد أقساط السلفة
+                </label>
+                <input type="number" name="advance_installments" id="advance_installments" class="form-control form-control-modern" min="1" value="{{ advance_installments }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary-custom w-100">
+                    <i class="fas fa-eye me-1"></i> عرض التقرير
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+{% if summary %}
+<div class="row g-4 mb-4">
+    <!-- الصف الأول -->
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4a90d9, #357abd);">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number">${{ summary.base_salary|floatformat:2 }}</div>
+            <div class="stat-label">الراتب الأساسي</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_allowances|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي العلاوات</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #dc3545, #b02a37);">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_penalties|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي العقوبات</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_bonus|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي المكافآت</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #6f42c1, #5530a3);">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_advances|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي السلف</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #6c757d, #495057);">
+                <i class="fas fa-minus-circle"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_deductions|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي الخصومات</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #20c997, #0fa67a);">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_net_before_payments|floatformat:2 }}</div>
+            <div class="stat-label">الراتب المستحق (قبل الدفعات)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color: #28a745;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number" style="color: #6fcf97;">${{ summary.total_net_after_payments|floatformat:2 }}</div>
+            <div class="stat-label">صافي الراتب المستحق</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4a90d9, #357abd);">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_payments_made|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي الدفعات المدفوعة</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+            <div class="stat-number">${{ summary.remaining_advance_balance|floatformat:2 }}</div>
+            <div class="stat-label">المتبقي من السلف</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #20c997, #0fa67a);">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-number">${{ summary.total_earned_accumulated|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي ما استحقه الموظف</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Details Table -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-calendar-alt text-primary me-2"></i> التفاصيل الشهرية</span>
+        <span class="badge bg-soft-primary badge-soft">{{ monthly_data|length }} شهر</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>الفترة</th>
+                        <th>الراتب الأساسي</th>
+                        <th>العلاوات</th>
+                        <th>العقوبات</th>
+                        <th>المكافآت</th>
+                        <th>الخصومات</th>
+                        <th>قسط السلفة</th>
+                        <th>المتبقي من السلف</th>
+                        <th>صافي الراتب (قبل الدفعات)</th>
+                        <th>الدفعات</th>
+                        <th>صافي الراتب (بعد الدفعات)</th>
+                        <th>الديون المتبقية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month in monthly_data %}
+                    <tr>
+                        <td><span class="fw-semibold text-white">{{ month.period_label }}</span></td>
+                        <td>${{ month.base_salary|floatformat:2 }}</td>
+                        <td>${{ month.allowance_this_month|floatformat:2 }}</td>
+                        <td>${{ month.penalty_this_month|floatformat:2 }}</td>
+                        <td>${{ month.month_bonus|floatformat:2 }}</td>
+                        <td>${{ month.month_deduction|floatformat:2 }}</td>
+                        <td>${{ month.advance_deducted_this_month|floatformat:2 }}</td>
+                        <td>${{ month.remaining_advance_balance|floatformat:2 }}</td>
+                        <td>${{ month.net_before_payments|floatformat:2 }}</td>
+                        <td>${{ month.payments_this_period|floatformat:2 }}</td>
+                        <td>${{ month.net_salary|floatformat:2 }}</td>
+                        <td>${{ month.remaining_debt|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                            لا توجد بيانات للفترة المحددة.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- No Data Alert -->
+<div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.05); border-color: #f4c542; color: #f4c542; border-radius: 16px;">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    لا توجد بيانات راتب لهذا الموظف.
+</div>
+{% endif %}
+
+{% endblock %}

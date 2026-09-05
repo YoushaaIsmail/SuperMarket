@@ -1,0 +1,374 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-boxes text-primary me-2"></i> المنتجات
+        </h1>
+        <p class="page-subtitle mt-1">إدارة وعرض جميع المنتجات في المخزون</p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:product_add' %}" class="btn btn-primary-custom">
+            <i class="fas fa-plus me-1"></i> إضافة منتج جديد
+        </a>
+    </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm rounded-4 border-0 mb-4" role="alert" style="background: #141e2d; color: #e2e8f0; border: 1px solid #25324a !important;">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle text-success{% elif message.tags == 'error' %}times-circle text-danger{% elif message.tags == 'warning' %}exclamation-triangle text-warning{% else %}info-circle text-info{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1);"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Search & Scanner -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <form method="get" action="{% url 'app:product_list' %}" class="d-flex" id="search-form">
+            <input type="text" name="q" id="search-input" class="form-control form-control-modern" placeholder="بحث بالاسم أو الباركود..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary-custom ms-2">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" id="barcode-scanner" class="form-control form-control-modern" placeholder="امسح الباركود يدوياً أو بالكاميرا" autofocus>
+            <button class="btn btn-primary-custom" id="scan-camera-btn" type="button">
+                <i class="fas fa-camera"></i> مسح
+            </button>
+        </div>
+        <small class="text-muted">ضع المؤشر في الحقل وامسح الباركود، أو اضغط على زر المسح لاستخدام الكاميرا.</small>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-list-ul text-primary me-2"></i> قائمة المنتجات</span>
+        <span class="badge bg-soft-primary badge-soft">{{ products|length }} منتج</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th style="width:70px;">الصورة</th>  <!-- عمود الصورة -->
+                        <th>الاسم</th>
+                        <th>الفئة</th>
+                        <th>الوحدة</th>
+                        <th>الباركود</th>
+                        <th>سعر القطاعي</th>
+                        <th>سعر الجملة</th>
+                        <th>العبوة</th>
+                        <th>حد التنبيه</th>
+                        <th>الكمية</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #25324a;">
+                            {% else %}
+                                <div style="width:50px; height:50px; display:flex; align-items:center; justify-content:center; background:#1e2a3d; border-radius:8px; border:1px solid #25324a; color:#6a7b95;">
+                                    <i class="fas fa-image fa-2x"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td><span class="fw-semibold text-white">{{ product.name }}</span></td>
+                        <td>{{ product.category.name|default:"-" }}</td>
+                        <td>{{ product.unite|default:"-" }}</td>
+                        <td>
+                            {% if product.barcode %}
+                                <span class="badge bg-soft-info badge-soft">{{ product.barcode }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.sale_price }}</td>
+                        <td>{{ product.sale_priceAmount }}</td>
+                        <td>{{ product.Pakage|default:"-" }}</td>
+                        <td>
+                            <span class="badge {% if product.total_quantity <= product.Count_Alarm %}bg-soft-danger{% else %}bg-soft-success{% endif %} badge-soft">
+                                {{ product.Count_Alarm|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if product.total_quantity <= product.Count_Alarm %}bg-soft-danger{% else %}bg-soft-primary{% endif %} badge-soft">
+                                {{ product.total_quantity|default:0 }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <a href="{% url 'app:product_edit' product.pk %}" class="btn btn-sm btn-outline-custom" data-bs-toggle="tooltip" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'app:product_delete' product.pk %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% if product.barcode %}
+                                <a href="{% url 'app:product_by_barcode' product.barcode %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="عرض بالباركود" target="_blank">
+                                    <i class="fas fa-barcode"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3 d-block"></i>
+                            <span class="text-muted">لا توجد منتجات مسجلة حالياً.</span>
+                            <div class="mt-3">
+                                <a href="{% url 'app:product_add' %}" class="btn btn-primary-custom btn-sm">
+                                    <i class="fas fa-plus me-1"></i> إضافة أول منتج
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if is_paginated %}
+    <div class="card-footer bg-transparent border-0 py-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Scanner Modal (Camera) -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #141e2d; border: 1px solid #25324a;">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="scannerModalLabel">
+                    <i class="fas fa-camera text-primary me-2"></i> مسح الباركود بالكاميرا
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader" style="width:100%; min-height: 250px; background: #0a121f; border-radius: 12px;"></div>
+                <div class="mt-3 text-center text-muted">
+                    <i class="fas fa-info-circle me-1"></i> قم بتوجيه الكاميرا نحو الباركود
+                </div>
+                <div class="mt-2">
+                    <label class="form-label-modern">أو ارفع صورة تحتوي على باركود</label>
+                    <input type="file" id="barcode-image-input" accept="image/*" class="form-control form-control-modern">
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-color: #4a5568; color: #b8c9e0;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- Extra scripts for barcode scanner -->
+{% block extra_scripts %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Elements ---
+        const scannerInput = document.getElementById('barcode-scanner');
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const scanCameraBtn = document.getElementById('scan-camera-btn');
+        const modalElement = document.getElementById('scannerModal');
+        const fileInput = document.getElementById('barcode-image-input');
+        let html5QrCode = null;
+        let scannerModal = null;
+
+        // Initialize Bootstrap modal
+        if (modalElement) {
+            scannerModal = new bootstrap.Modal(modalElement);
+        }
+
+        // --- 1. Manual barcode input ---
+        if (scannerInput && searchInput && searchForm) {
+            scannerInput.addEventListener('change', function() {
+                const barcode = this.value.trim();
+                if (barcode) {
+                    searchInput.value = barcode;
+                    searchForm.submit();
+                }
+            });
+            // Focus on page load
+            scannerInput.focus();
+        }
+
+        // --- 2. Camera scan button ---
+        if (scanCameraBtn && scannerModal) {
+            scanCameraBtn.addEventListener('click', function() {
+                scannerModal.show();
+
+                // Start camera after modal is fully shown
+                setTimeout(function() {
+                    const readerElement = document.getElementById('reader');
+                    if (!readerElement) {
+                        alert('عنصر القارئ غير موجود.');
+                        return;
+                    }
+
+                    // Stop previous scanner if any
+                    if (html5QrCode) {
+                        html5QrCode.stop().catch(() => {}).then(() => {
+                            html5QrCode.clear();
+                        });
+                    }
+
+                    // Check if library is loaded
+                    if (typeof Html5Qrcode === 'undefined') {
+                        alert('مكتبة المسح غير محملة. تأكد من الاتصال بالإنترنت.');
+                        scannerModal.hide();
+                        return;
+                    }
+
+                    html5QrCode = new Html5Qrcode("reader");
+                    const config = {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        // Support most common barcode formats
+                        formatsToSupport: [
+                            Html5QrcodeSupportedFormats.EAN_13,
+                            Html5QrcodeSupportedFormats.EAN_8,
+                            Html5QrcodeSupportedFormats.UPC_A,
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39,
+                            Html5QrcodeSupportedFormats.ITF,
+                            Html5QrcodeSupportedFormats.CODABAR
+                        ]
+                    };
+
+                    html5QrCode.start(
+                        { facingMode: "environment" },
+                        config,
+                        onScanSuccess,
+                        onScanError
+                    ).catch(function(err) {
+                        console.warn("Camera start error:", err);
+                        alert('تعذر تشغيل الكاميرا. يرجى السماح بالوصول إلى الكاميرا أو استخدام رفع الصورة.');
+                        // Auto-trigger file input
+                        if (fileInput) fileInput.click();
+                    });
+
+                    function onScanSuccess(decodedText) {
+                        // Submit search with barcode
+                        if (searchInput && searchForm) {
+                            searchInput.value = decodedText;
+                            searchForm.submit();
+                        } else {
+                            scannerInput.value = decodedText;
+                            scannerInput.dispatchEvent(new Event('change'));
+                        }
+                        // Stop camera and close modal
+                        if (html5QrCode) {
+                            html5QrCode.stop().catch(() => {}).then(() => {
+                                html5QrCode.clear();
+                            });
+                        }
+                        scannerModal.hide();
+                    }
+
+                    function onScanError(err) {
+                        // Ignore repeated errors
+                    }
+
+                    // Handle image upload
+                    if (fileInput) {
+                        fileInput.onchange = function(e) {
+                            if (this.files.length) {
+                                const file = this.files[0];
+                                if (html5QrCode) {
+                                    html5QrCode.stop().catch(() => {}).then(() => {
+                                        html5QrCode.clear();
+                                        html5QrCode.scanFile(file, true)
+                                            .then(decodedText => {
+                                                if (searchInput && searchForm) {
+                                                    searchInput.value = decodedText;
+                                                    searchForm.submit();
+                                                } else {
+                                                    scannerInput.value = decodedText;
+                                                    scannerInput.dispatchEvent(new Event('change'));
+                                                }
+                                                scannerModal.hide();
+                                            })
+                                            .catch(err => {
+                                                alert('فشل قراءة الباركود من الصورة. تأكد من وضوح الصورة واحتوائها على باركود صالح.');
+                                            });
+                                    });
+                                }
+                            }
+                        };
+                    }
+
+                }, 600);
+            });
+        }
+
+        // --- 3. Stop camera when modal is closed ---
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {}).then(() => {
+                        html5QrCode.clear();
+                    });
+                }
+                // Reset file input
+                if (fileInput) fileInput.value = '';
+            });
+        }
+
+        // --- 4. Keyboard shortcut: Ctrl+Shift+S to open scanner ---
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                if (scanCameraBtn) scanCameraBtn.click();
+            }
+        });
+
+        // --- 5. Initialize tooltips ---
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

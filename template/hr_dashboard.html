@@ -1,0 +1,146 @@
+{% extends 'base_sidebar_hr.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-users-cog text-primary me-2"></i> لوحة تحكم الموارد البشرية
+        </h1>
+        <p class="page-subtitle mt-1">نظرة عامة على الموظفين والتكاليف</p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:employee_add' %}" class="btn btn-primary-custom">
+            <i class="fas fa-user-plus me-1"></i> إضافة موظف جديد
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4a90d9, #357abd);">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-number">{{ total_employees }}</div>
+            <div class="stat-label">إجمالي الموظفين</div>
+            <a href="{% url 'app:employee_list' %}" class="btn btn-outline-custom btn-sm mt-3 w-100">
+                عرض الكل <i class="fas fa-arrow-left me-1"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-number">{{ active_employees }}</div>
+            <div class="stat-label">الموظفين النشطين</div>
+            <a href="{% url 'app:employee_list' %}?is_active=1" class="btn btn-outline-success btn-sm mt-3 w-100" style="border-color: #28a745; color: #6fcf97;">
+                عرض <i class="fas fa-arrow-left me-1"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #dc3545, #b02a37);">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <div class="stat-number">{{ inactive_employees }}</div>
+            <div class="stat-label">الموظفين غير النشطين</div>
+            <a href="{% url 'app:employee_list' %}?is_active=0" class="btn btn-outline-danger btn-sm mt-3 w-100" style="border-color: #dc3545; color: #f28b82;">
+                عرض <i class="fas fa-arrow-left me-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-user-cog text-primary me-2"></i>
+                <span>إدارة الموظفين</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">إضافة، تعديل، أو حذف الموظفين، وإدارة بياناتهم.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'app:employee_add' %}" class="btn btn-primary-custom">
+                        <i class="fas fa-plus me-1"></i> إضافة موظف جديد
+                    </a>
+                    <a href="{% url 'app:employee_list' %}" class="btn btn-outline-custom">
+                        <i class="fas fa-list me-1"></i> قائمة الموظفين
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-tags text-primary me-2"></i>
+                <span>إدارة التكاليف</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">إدارة فئات التكاليف وإضافة تكاليف تشغيلية جديدة.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'app:cost_category_list' %}" class="btn btn-outline-custom">
+                        <i class="fas fa-list me-1"></i> فئات التكاليف
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Employees Table -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-clock text-primary me-2"></i> أحدث الموظفين</span>
+        <span class="badge bg-soft-primary badge-soft">{{ recent_employees|length }} موظف</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th><i class="fas fa-user me-1"></i> الاسم</th>
+                        <th><i class="fas fa-briefcase me-1"></i> الوظيفة</th>
+                        <th><i class="fas fa-calendar-alt me-1"></i> تاريخ التعيين</th>
+                        <th><i class="fas fa-circle me-1"></i> الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in recent_employees %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><span class="fw-semibold text-white">{{ employee.name }}</span></td>
+                        <td>{{ employee.position|default:"-" }}</td>
+                        <td>{{ employee.hire_date|date:"Y-m-d" }}</td>
+                        <td>
+                            {% if employee.is_active %}
+                                <span class="badge bg-soft-success badge-soft">نشط</span>
+                            {% else %}
+                                <span class="badge bg-soft-danger badge-soft">غير نشط</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-user-slash fa-2x mb-2 d-block"></i>
+                            لا يوجد موظفين مسجلين حالياً.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

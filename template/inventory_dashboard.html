@@ -1,0 +1,205 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">لوحة تحكم المخزون</h2>
+
+    <!-- الإحصائيات الأساسية -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card-modern text-center p-3" style="border-color: #4a90d9;">
+                <div class="text-muted small">الفئات</div>
+                <h3 class="text-white">{{ category_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-modern text-center p-3" style="border-color: #28a745;">
+                <div class="text-muted small">الوحدات</div>
+                <h3 class="text-white">{{ unite_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-modern text-center p-3" style="border-color: #ffc107;">
+                <div class="text-muted small">المنتجات</div>
+                <h3 class="text-white">{{ product_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-modern text-center p-3" style="border-color: #17a2b8;">
+                <div class="text-muted small">الموردين</div>
+                <h3 class="text-white">{{ supplier_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- التنبيهات -->
+    <div class="row g-4">
+        <!-- 1. المنتجات منخفضة المخزون -->
+        <div class="col-md-4">
+            <div class="card-modern h-100">
+                <div class="card-header d-flex align-items-center justify-content-between" style="border-color: #dc3545;">
+                    <span><i class="fas fa-exclamation-triangle text-danger me-2"></i>منتجات منخفضة المخزون</span>
+                    <span class="badge bg-danger">{{ low_stock_count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_products %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>الكمية</th>
+                                        <th>الحد</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in low_stock_products %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td class="text-danger fw-bold">{{ item.quantity }}</td>
+                                        <td>{{ item.alarm }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">✅ لا توجد منتجات منخفضة المخزون.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. الدفعات المنتهية الصلاحية -->
+        <div class="col-md-4">
+            <div class="card-modern h-100">
+                <div class="card-header d-flex align-items-center justify-content-between" style="border-color: #dc3545;">
+                    <span><i class="fas fa-calendar-times text-danger me-2"></i>دفعات منتهية الصلاحية</span>
+                    <span class="badge bg-danger">{{ expired_count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if expired_batches %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>التاريخ</th>
+                                        <th>الكمية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for batch in expired_batches %}
+                                    <tr>
+                                        <td>{{ batch.product.name }}</td>
+                                        <td class="text-danger">{{ batch.expiration_date|date:"Y-m-d" }}</td>
+                                        <td>{{ batch.quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">✅ لا توجد دفعات منتهية الصلاحية.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. الدفعات التي ستنتهي قريباً -->
+        <div class="col-md-4">
+            <div class="card-modern h-100">
+                <div class="card-header d-flex align-items-center justify-content-between" style="border-color: #ffc107;">
+                    <span><i class="fas fa-clock text-warning me-2"></i>دفعات تنتهي خلال 30 يوم</span>
+                    <span class="badge bg-warning text-dark">{{ soon_expiring_count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if soon_expiring_batches %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>التاريخ</th>
+                                        <th>الأيام</th>
+                                        <th>الكمية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for batch in soon_expiring_batches %}
+                                    <tr>
+                                        <td>{{ batch.product.name }}</td>
+                                        <td class="text-warning">{{ batch.expiration_date|date:"Y-m-d" }}</td>
+                                        <td>{{ batch.days_until_expiration }}</td>
+                                        <td>{{ batch.quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">✅ لا توجد دفعات ستنتهي قريباً.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-modern {
+        background: #141e2d;
+        border: 1px solid #25324a;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .card-modern .card-header {
+        background: #0f1825;
+        padding: 12px 16px;
+        border-bottom: 1px solid #25324a;
+        color: #b8c9e0;
+        font-weight: 600;
+    }
+    .card-modern .card-body {
+        padding: 16px;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    /* === Improved Table Styles === */
+    .card-modern .table-dark {
+        background-color: #0f1825;  /* darker background for table */
+        border-radius: 8px;
+    }
+    .card-modern .table-dark.table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.04);
+    }
+    .card-modern .table-dark.table-hover > tbody > tr:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+    .card-modern .table-dark thead th {
+        background-color: #1a2638;
+        color: #d0dcec;
+        border-bottom: 2px solid #2a3a55;
+        font-weight: 600;
+    }
+    .card-modern .table-dark td,
+    .card-modern .table-dark th {
+        color: #e0e8f0;
+        border-color: #1e2a3d;
+        padding: 6px 4px;
+    }
+    .card-modern .table-dark tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* badge and text overrides (keep your existing) */
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+    .text-danger { color: #f28b82 !important; }
+    .text-warning { color: #f4c542 !important; }
+    .text-muted { color: #8a9bb5 !important; }
+</style>
+{% endblock %}

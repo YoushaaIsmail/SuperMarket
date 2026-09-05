@@ -1,0 +1,246 @@
+{% extends 'base_sidebar_hr.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}user-plus{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل المستخدم{% else %}إضافة مستخدم جديد{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث بيانات المستخدم{% else %}إدخال مستخدم جديد إلى النظام{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-user-cog text-primary me-2"></i>
+                <span>بيانات المستخدم</span>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-user text-primary me-1"></i> اسم المستخدم <span class="text-danger">*</span>
+                            </label>
+                            {{ form.username }}
+                            {{ form.username.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-envelope text-primary me-1"></i> البريد الإلكتروني <span class="text-danger">*</span>
+                            </label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-user-tag text-primary me-1"></i> الدور <span class="text-danger">*</span>
+                            </label>
+                            {{ form.role }}
+                            {{ form.role.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-phone text-primary me-1"></i> الهاتف
+                            </label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-map-marker-alt text-primary me-1"></i> العنوان
+                            </label>
+                            {{ form.address }}
+                            {{ form.address.errors }}
+                        </div>
+                    </div>
+
+                    {% if not form.instance.pk %}
+                    <!-- حقول كلمة المرور فقط عند الإضافة -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-lock text-primary me-1"></i> كلمة المرور <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password1 }}
+                            {{ form.password1.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-check-circle text-primary me-1"></i> تأكيد كلمة المرور <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password2 }}
+                            {{ form.password2.errors }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                            {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                        </button>
+                        <a href="{% url 'app:user_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                            <i class="fas fa-times me-1"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* إضافة خلفية داكنة للحقول مع تحسين التباين */
+    .form-control-modern,
+    .form-control {
+        background: #0f1825 !important;
+        border: 1px solid #25324a;
+        color: #e2e8f0 !important;
+        padding: 10px 14px;
+        border-radius: 10px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control-modern:focus,
+    .form-control:focus {
+        background: #0f1825 !important;
+        border-color: #4a90d9;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.25);
+        outline: none;
+    }
+    .form-control-modern::placeholder,
+    .form-control::placeholder {
+        color: #5a6b85;
+    }
+    /* دعم الـ select أيضًا */
+    select.form-control-modern,
+    select.form-control {
+        background: #0f1825 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a9bb5' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat left 14px center;
+        background-size: 12px;
+        appearance: none;
+        -webkit-appearance: none;
+        color: #e2e8f0;
+        padding-left: 36px;
+    }
+    select.form-control-modern option,
+    select.form-control option {
+        background: #0f1825;
+        color: #e2e8f0;
+    }
+    /* تحسين حقول كلمة المرور */
+    input[type="password"].form-control-modern,
+    input[type="password"].form-control {
+        background: #0f1825 !important;
+        color: #e2e8f0 !important;
+    }
+    /* تنسيق الأخطاء */
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        color: #f28b82;
+        font-size: 0.85rem;
+    }
+    .errorlist li {
+        display: inline-block;
+        background: rgba(220, 53, 69, 0.1);
+        padding: 2px 10px;
+        border-radius: 5px;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    /* تنسيق التسميات */
+    .form-label-modern {
+        color: #8a9bb5;
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .card-modern {
+        background: #141e2d;
+        border: 1px solid #25324a;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .card-modern .card-header {
+        background: #0f1825;
+        padding: 15px 20px;
+        border-bottom: 1px solid #25324a;
+        color: #b8c9e0;
+        font-weight: 600;
+    }
+    .card-modern .card-body {
+        padding: 20px;
+    }
+    .btn-primary-custom {
+        background: #4a90d9;
+        border: none;
+        color: #ffffff;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: background 0.2s;
+        font-weight: 600;
+    }
+    .btn-primary-custom:hover {
+        background: #3a7bc8;
+        color: #ffffff;
+    }
+    .btn-outline-secondary {
+        border-color: #4a5568;
+        color: #b8c9e0;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: background 0.2s;
+    }
+    .btn-outline-secondary:hover {
+        background: #25324a;
+        color: #ffffff;
+    }
+    .page-title {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    .page-subtitle {
+        color: #8a9bb5;
+    }
+    .text-danger {
+        color: #f28b82 !important;
+    }
+</style>
+
+<!-- Script لتطبيق الكلاسات تلقائياً (اختياري) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // إضافة كلاس form-control-modern لجميع حقول الإدخال التي لا تملكه
+        document.querySelectorAll('input:not(.form-control-modern):not([type="hidden"]):not([type="checkbox"]), select:not(.form-control-modern), textarea:not(.form-control-modern)').forEach(function(el) {
+            if (el.id && el.id.startsWith('id_')) {
+                el.classList.add('form-control', 'form-control-modern');
+            }
+        });
+        // جعل حقل العنوان أكبر
+        const addressField = document.getElementById('{{ form.address.id_for_label }}');
+        if (addressField) {
+            addressField.style.minHeight = '80px';
+        }
+    });
+</script>
+
+{% endblock %}

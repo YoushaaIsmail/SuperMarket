@@ -1,0 +1,129 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل دفعة شراء{% else %}إضافة دفعة شراء جديدة{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث بيانات الدفعة{% else %}تسجيل دفعة جديدة للمورد{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-money-bill-wave text-primary me-2"></i>
+                <span>بيانات الدفعة</span>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.invoice_id.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-file-invoice text-primary me-1"></i> المورد <span class="text-danger">*</span>
+                            </label>
+                            {{ form.Supplier_id }}
+                            {{ form.Supplier_id.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-dollar-sign text-primary me-1"></i> المبلغ ($) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amountDollar }}
+                                <span class="input-group-text" style="background: #0f1825; border-color: #25324a; color: #b8c9e0;">USD</span>
+                            </div>
+                            {{ form.amountDollar.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-dollar-sign text-primary me-1"></i> المبلغ (ل.س) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amountSA }}
+                                <span class="input-group-text" style="background: #0f1825; border-color: #25324a; color: #b8c9e0;">USD</span>
+                            </div>
+                            {{ form.amountSA.errors }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.method.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-credit-card text-primary me-1"></i> طريقة الدفع
+                            </label>
+                            {{ form.method }}
+                            {{ form.method.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.exchange_rate_used.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-exchange-alt text-primary me-1"></i> سعر الصرف
+                            </label>
+                            {{ form.exchange_rate_used }}
+                            {{ form.exchange_rate_used.errors }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-sticky-note text-primary me-1"></i> ملاحظات
+                            </label>
+                            {{ form.notes }}
+                            {{ form.notes.errors }}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                            {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                        </button>
+                        <a href="{% url 'app:payment_purchase_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                            <i class="fas fa-times me-1"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply Bootstrap classes to form fields
+        const fields = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        fields.forEach(field => {
+            if (field.id && field.id.startsWith('id_')) {
+                if (!field.closest('.input-group')) {
+                    field.classList.add('form-control', 'form-control-modern');
+                } else {
+                    field.classList.add('form-control', 'form-control-modern');
+                    field.style.borderRadius = '12px 0 0 12px';
+                }
+            }
+        });
+
+        // جعل حقل الملاحظات أكبر
+        const notesField = document.getElementById('{{ form.notes.id_for_label }}');
+        if (notesField) {
+            notesField.style.minHeight = '80px';
+        }
+    });
+</script>
+{% endblock %}

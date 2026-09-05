@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام المحاسبة – إدارة المخزون</title>
+
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" />
+
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Google Font (Cairo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        /* ===== RESET & BASE (Dark Deep) ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Tahoma', sans-serif;
+            background: #070d18;
+            /* خلفية سوداء مزبقة عميقة */
+            color: #e2e8f0;
+            /* نص فاتح جداً */
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f1a2b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a90d9;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #357abd;
+        }
+
+        /* ===== WRAPPER ===== */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR (أغمق) ===== */
+        .sidebar {
+            width: 270px;
+            background: linear-gradient(180deg, #050a14 0%, #0b1322 100%);
+            /* أسود عميق جداً */
+            color: #c8d6e8;
+            flex-shrink: 0;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+            z-index: 1050;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Brand */
+        .sidebar .brand {
+            padding: 24px 20px 20px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            letter-spacing: 0.5px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .brand a {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .sidebar .brand a i {
+            font-size: 1.8rem;
+            color: #6ea8fe;
+        }
+        .sidebar .brand .brand-sub {
+            font-size: 0.7rem;
+            font-weight: 300;
+            opacity: 0.5;
+            display: block;
+            margin-top: 2px;
+            color: #94a3b8;
+        }
+
+        /* Navigation */
+        .sidebar .nav {
+            padding: 16px 12px 20px;
+            flex: 1;
+        }
+        .sidebar .nav-item {
+            margin-bottom: 2px;
+        }
+        .sidebar .nav-link {
+            color: #9aaec9;
+            /* رمادي فاتح */
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            text-decoration: none;
+            border: none;
+            background: transparent;
+        }
+        .sidebar .nav-link i {
+            width: 22px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #556f8b;
+            transition: color 0.25s ease;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            transform: translateX(-4px);
+        }
+        .sidebar .nav-link:hover i {
+            color: #6ea8fe;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(74, 144, 217, 0.15);
+            color: #ffffff;
+            box-shadow: inset 3px 0 0 #4e9bff;
+        }
+        .sidebar .nav-link.active i {
+            color: #6ea8fe;
+        }
+
+        .sidebar .nav-link .badge {
+            margin-right: auto;
+            background: #e74c3c;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        .sidebar .nav-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 16px 18px;
+        }
+
+        .sidebar .nav-link.text-danger {
+            color: #f28b82 !important;
+        }
+        .sidebar .nav-link.text-danger i {
+            color: #f28b82 !important;
+        }
+        .sidebar .nav-link.text-danger:hover {
+            background: rgba(242, 139, 130, 0.12);
+            color: #ffb4a8 !important;
+        }
+
+        /* ===== TOGGLE BUTTON (في الموبايل) ===== */
+        .sidebar-toggle {
+            display: none;
+            background: #141e2d;
+            color: #e2e8f0;
+            border: 1px solid #25324a;
+            padding: 10px 16px;
+            font-size: 1.4rem;
+            border-radius: 12px;
+            transition: background 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .sidebar-toggle:hover {
+            background: #1e2a3d;
+        }
+
+        /* ===== OVERLAY ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1040;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* ===== MAIN CONTENT (خلفية غامقة جداً) ===== */
+        .main-content {
+            flex: 1;
+            padding: 28px 32px 40px;
+            min-width: 0;
+            background: #070d18;
+            /* نفس خلفية الجسم */
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .main-content {
+                padding: 20px 18px 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: -300px;
+                width: 280px;
+                height: 100vh;
+                border-radius: 0 0 0 0;
+                box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                transform: translateX(0);
+            }
+            .sidebar.active {
+                transform: translateX(-300px);
+                right: 0;
+            }
+            .sidebar-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .main-content {
+                padding: 16px 14px 24px;
+            }
+        }
+
+        /* ===== CARDS (داكنة) ===== */
+        .card-modern {
+            background: #141e2d;
+            /* رمادي مزرق غامق */
+            border: 1px solid #25324a;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
+            overflow: hidden;
+        }
+        .card-modern:hover {
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+        }
+        .card-modern .card-header {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid #25324a;
+            padding: 18px 24px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+        }
+        .card-modern .card-body {
+            padding: 24px;
+        }
+        .card-modern .card-footer {
+            background: rgba(255, 255, 255, 0.01);
+            border-top: 1px solid #25324a;
+        }
+
+        /* ===== STAT CARDS (داكنة) ===== */
+        .stat-card {
+            background: #141e2d;
+            border-radius: 20px;
+            padding: 20px 24px;
+            border: 1px solid #25324a;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.25s ease;
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+            border-color: #3a4d6a;
+        }
+        .stat-card .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: #ffffff;
+        }
+        .stat-card .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #4a90d9, #357abd);
+            border: none;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(74, 144, 217, 0.25);
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(74, 144, 217, 0.4);
+            color: #fff;
+            background: linear-gradient(135deg, #5a9ee9, #3d86c9);
+        }
+
+        .btn-outline-custom {
+            border: 2px solid #4a90d9;
+            color: #6ea8fe;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.25s ease;
+            background: transparent;
+        }
+        .btn-outline-custom:hover {
+            background: #4a90d9;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 217, 0.3);
+        }
+        .btn-outline-danger {
+            border: 2px solid #dc3545;
+            color: #f28b82;
+            
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.25s ease;
+            background: transparent;
+        }
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        /* ===== TABLE (داكنة) ===== */
+        .table-modern {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+            color: #e2e8f0;
+        }
+        .table-modern thead th {
+            background: #1e2a3d;
+            /* رأس الجدول داكن */
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #b8c9e0;
+            border: none;
+            border-radius: 12px 12px 0 0;
+        }
+        .table-modern tbody td {
+            background: #141e2d;
+            padding: 14px 18px;
+            border: none;
+            vertical-align: middle;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            color: #e2e8f0;
+        }
+        .table-modern tbody tr {
+            transition: all 0.15s ease;
+            border-radius: 12px;
+        }
+        .table-modern tbody tr:hover td {
+            background: #1c2a3f;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        }
+        .table-modern tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 12px;
+        }
+        .table-modern tbody tr:last-child td:last-child {
+            border-radius: 0 0 12px 0;
+        }
+
+        /* ===== FORMS (داكنة) ===== */
+        .form-control-modern {
+            border: 2px solid #25324a;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #0f1825;
+            color: #e2e8f0;
+        }
+        .form-control-modern:focus {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.15);
+            background: #141e2d;
+            color: #ffffff;
+        }
+        .form-control-modern::placeholder {
+            color: #6b7f9a;
+        }
+
+        .form-label-modern {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #b8c9e0;
+            margin-bottom: 6px;
+        }
+
+        /* ===== BADGE (داكنة) ===== */
+        .badge-soft {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .badge-soft-primary {
+            background: rgba(74, 144, 217, 0.2);
+            color: #6ea8fe;
+        }
+        .badge-soft-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #6fcf97;
+        }
+        .badge-soft-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #f4c542;
+        }
+        .badge-soft-danger {
+            background: rgba(220, 53, 69, 0.2);
+            color: #f28b82;
+        }
+        .badge-soft-info {
+            background: rgba(23, 162, 184, 0.2);
+            color: #63d4e0;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .page-title {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+        .page-subtitle {
+            color: #94a3b8;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+        .text-muted {
+            color: #6b7f9a !important;
+        }
+
+        .bg-soft-primary {
+            background: rgba(74, 144, 217, 0.08);
+        }
+
+        /* ===== PAGINATION (داكنة) ===== */
+        .pagination .page-link {
+            background: #141e2d;
+            border: 1px solid #25324a;
+            color: #b8c9e0;
+        }
+        .pagination .page-item.active .page-link {
+            background: #4a90d9;
+            border-color: #4a90d9;
+            color: #fff;
+        }
+        .pagination .page-link:hover {
+            background: #1e2a3d;
+            color: #fff;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-slide {
+            animation: fadeSlideUp 0.5s ease forwards;
+        }
+        .animate-fade-slide-d1 {
+            animation-delay: 0.05s;
+        }
+        .animate-fade-slide-d2 {
+            animation-delay: 0.10s;
+        }
+        .animate-fade-slide-d3 {
+            animation-delay: 0.15s;
+        }
+        .animate-fade-slide-d4 {
+            animation-delay: 0.20s;
+        }
+
+        /* ===== SCROLLBAR SIDEBAR ===== */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* تحسين ظهور الروابط في الجداول */
+        .table-modern a:not(.btn) {
+            color: #6ea8fe;
+            text-decoration: none;
+        }
+        .table-modern a:not(.btn):hover {
+            color: #90bdfa;
+            text-decoration: underline;
+        }
+
+        /* قائمة النشاط الأخير */
+        .list-group-item {
+            background: transparent;
+            color: #e2e8f0;
+            border-color: #25324a;
+        }
+        .list-group-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+
+        <!-- ===== SIDEBAR ===== -->
+        <nav class="sidebar" id="sidebar">
+            <div class="brand">
+                <a href="{% url 'app:inventory_dashboard' %}">
+                    <i class="fas fa-cubes"></i>
+                    <span>
+                        إدارة المخزون
+                        <span class="brand-sub">نظام محاسبي متكامل</span>
+                    </span>
+                </a>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'app:inventory_dashboard' %}active{% endif %}"
+                    href="{% url 'app:inventory_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'category' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'app:category_list' %}">
+                <i class="fas fa-tags"></i> الفئات
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'unite' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'app:unite_list' %}">
+            <i class="fas fa-ruler"></i> الوحدات
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}"
+        href="{% url 'app:product_list' %}">
+        <i class="fas fa-boxes"></i> المنتجات
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {% if 'exchange_rate_list' in request.resolver_match.url_name %}active{% endif %}"
+    href="{% url 'app:exchange_rate_list' %}">
+    <i class="fas fa-dollar-sign"></i> سعر الصرف
+</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {% if 'supplier' in request.resolver_match.url_name %}active{% endif %}"
+    href="{% url 'app:supplier_list' %}">
+    <i class="fas fa-truck"></i> الموردين
+</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {% if 'purchase_invoice_list' in request.resolver_match.url_name %}active{% endif %}"
+    href="{% url 'app:purchase_invoice_list' %}">
+    <i class="fas fa-file-invoice"></i> فواتير الشراء
+</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {% if 'payment_purchase_list' in request.resolver_match.url_name %}active{% endif %}"
+    href="{% url 'app:payment_purchase_list' %}">
+    <i class="fas fa-money-bill-wave"></i> مدفوعات المشتريات
+</a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link {% if 'change_password' in request.resolver_match.url_name %}active{% endif %}"
+    href="{% url 'app:change_password' %}">
+    <i class="fas fa-money-bill-wave"></i> تغيير كلمة السر 
+</a>
+</li>
+
+<li class="nav-item mt-3">
+    <div class="nav-divider"></div>
+</li>
+<li class="nav-item">
+    <a class="nav-link text-danger" href="{% url 'app:manager_dashboard' %}">
+        <i class="fas fa-sign-out-alt"></i> الإدارة
+    </a>
+</li>
+</ul>
+</nav>
+
+<!-- ===== OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content">
+
+    <!-- Toggle button (mobile) -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- ===== PAGE CONTENT ===== -->
+    {% block content %}{% endblock %}
+
+</div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+<script>
+    (function() {
+        'use strict';
+
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains('active')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', toggleSidebar);
+        }
+        if (overlay) {
+            overlay.addEventListener('click', closeSidebar);
+        }
+
+        document.querySelectorAll('.sidebar .nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && sidebar.classList.contains('active')) {
+                closeSidebar();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+                closeSidebar();
+            }
+        });
+
+    })();
+</script>
+
+<!-- ===== EXAMPLE BLOCK ===== -->
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

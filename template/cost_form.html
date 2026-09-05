@@ -1,0 +1,251 @@
+{% extends 'base_sidebar_hr.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل التكلفة{% else %}إضافة تكلفة جديدة{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث بيانات التكلفة{% else %}إضافة تكلفة جديدة إلى الفئة{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-coins text-primary me-2"></i>
+                <span>بيانات التكلفة</span>
+                <span class="badge bg-soft-primary badge-soft me-auto">{{ category.name }}</span>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-dollar-sign text-primary me-1"></i> المبلغ ($) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amount }}
+                                <span class="input-group-text">USD</span>
+                            </div>
+                            {{ form.amount.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.date.id_for_label }}" class="form-label-modern">
+                                <i class="fas fa-calendar-alt text-primary me-1"></i> التاريخ
+                            </label>
+                            {{ form.date }}
+                            {{ form.date.errors }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label-modern">
+                            <i class="fas fa-align-left text-primary me-1"></i> الوصف
+                        </label>
+                        {{ form.description }}
+                        {{ form.description.errors }}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                            {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                        </button>
+                        <a href="{% url 'app:cost_list' category.pk %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                            <i class="fas fa-times me-1"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS لتحسين خلفية الحقول -->
+<style>
+    /* خلفية داكنة لجميع حقول الإدخال */
+    .form-control,
+    .form-control-modern,
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"],
+    select,
+    textarea {
+        background: #0f1825 !important;
+        border: 1px solid #25324a !important;
+        color: #e2e8f0 !important;
+        padding: 10px 14px;
+        border-radius: 10px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        width: 100%;
+    }
+    /* حقل التاريخ يظهر باللون الداكن أيضاً */
+    input[type="date"] {
+        background: #0f1825 !important;
+        color: #e2e8f0 !important;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+    /* حقل select */
+    select {
+        background: #0f1825 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a9bb5' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat left 14px center;
+        background-size: 12px;
+        appearance: none;
+        -webkit-appearance: none;
+        padding-left: 36px;
+        color: #e2e8f0 !important;
+    }
+    select option {
+        background: #0f1825;
+        color: #e2e8f0;
+    }
+    /* textarea */
+    textarea {
+        background: #0f1825 !important;
+        color: #e2e8f0 !important;
+        min-height: 80px;
+        resize: vertical;
+    }
+    /* حقل مع input-group */
+    .input-group-text {
+        background: #0f1825 !important;
+        border: 1px solid #25324a !important;
+        color: #8a9bb5 !important;
+        border-radius: 0 10px 10px 0;
+    }
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px !important;
+    }
+    /* حالة التركيز */
+    .form-control:focus,
+    .form-control-modern:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+        background: #0f1825 !important;
+        border-color: #4a90d9 !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.25);
+        outline: none;
+    }
+    /* تنسيق الأخطاء */
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        color: #f28b82;
+        font-size: 0.85rem;
+    }
+    .errorlist li {
+        display: inline-block;
+        background: rgba(220, 53, 69, 0.1);
+        padding: 2px 10px;
+        border-radius: 5px;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    /* تنسيق التسميات */
+    .form-label-modern {
+        color: #8a9bb5;
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .card-modern {
+        background: #141e2d;
+        border: 1px solid #25324a;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .card-modern .card-header {
+        background: #0f1825;
+        padding: 15px 20px;
+        border-bottom: 1px solid #25324a;
+        color: #b8c9e0;
+        font-weight: 600;
+    }
+    .card-modern .card-body {
+        padding: 20px;
+    }
+    .btn-primary-custom {
+        background: #4a90d9;
+        border: none;
+        color: #ffffff;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: background 0.2s;
+        font-weight: 600;
+    }
+    .btn-primary-custom:hover {
+        background: #3a7bc8;
+        color: #ffffff;
+    }
+    .btn-outline-secondary {
+        border-color: #4a5568;
+        color: #b8c9e0;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: background 0.2s;
+    }
+    .btn-outline-secondary:hover {
+        background: #25324a;
+        color: #ffffff;
+    }
+    .page-title {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    .page-subtitle {
+        color: #8a9bb5;
+    }
+    .text-danger {
+        color: #f28b82 !important;
+    }
+    .badge-soft {
+        background: rgba(74, 144, 217, 0.15);
+        color: #6ea8fe;
+    }
+</style>
+
+<!-- JavaScript لتطبيق الكلاسات تلقائياً وتعيين التاريخ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // إضافة class="form-control form-control-modern" لجميع حقول الإدخال التي لا تملكها
+        const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not(.form-control-modern), select:not(.form-control-modern), textarea:not(.form-control-modern)');
+        inputs.forEach(field => {
+            if (field.id && field.id.startsWith('id_')) {
+                field.classList.add('form-control', 'form-control-modern');
+            }
+        });
+
+        // تعيين التاريخ تلقائياً إذا كان الحقل فارغاً (حالة الإضافة)
+        const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        // توسيع حقل الوصف
+        const descField = document.getElementById('{{ form.description.id_for_label }}');
+        if (descField) {
+            descField.style.minHeight = '80px';
+        }
+    });
+</script>
+
+{% endblock %}

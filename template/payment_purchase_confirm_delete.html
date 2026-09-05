@@ -1,0 +1,25 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3>تأكيد حذف دفعة الشراء</h3>
+        </div>
+        <div class="card-body">
+            <p>هل أنت متأكد من حذف الدفعة التالية؟</p>
+            <ul>
+                <li><strong>الفاتورة:</strong> {{ object.invoice_id.invoice_number }}</li>
+                <li><strong>المورد:</strong> {{ object.invoice_id.supplier.name }}</li>
+                <li><strong>المبلغ:</strong> {{ object.amount }}$</li>
+                <li><strong>التاريخ:</strong> {{ object.date|date:"Y-m-d" }}</li>
+            </ul>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">نعم، احذف</button>
+                <a href="{% url 'app:payment_purchase_list' %}" class="btn btn-secondary">إلغاء</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

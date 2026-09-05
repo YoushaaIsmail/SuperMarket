@@ -1,0 +1,95 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل سعر الصرف{% else %}إضافة سعر صرف جديد{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث سعر صرف الدولار{% else %}تسجيل سعر صرف جديد للدولار مقابل الليرة السورية{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card-modern">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-dollar-sign text-primary me-2"></i>
+                <span>بيانات سعر الصرف</span>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <!-- Rate field -->
+                    <div class="mb-4">
+                        <label for="{{ form.rate.id_for_label }}" class="form-label-modern">
+                            <i class="fas fa-money-bill-wave text-primary me-1"></i> سعر الدولار (ل.س) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            {{ form.rate }}
+                            <span class="input-group-text" style="background: #0f1825; border-color: #25324a; color: #b8c9e0;">ل.س</span>
+                        </div>
+                        {% if form.rate.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.rate.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Date field (read-only) -->
+                    <div class="mb-4">
+                        <label class="form-label-modern">
+                            <i class="fas fa-calendar-alt text-primary me-1"></i> التاريخ
+                        </label>
+                        <div class="p-3 rounded-4" style="background: #0f1825; border: 2px solid #25324a; color: #e2e8f0;">
+                            {% if form.instance.pk %}
+                                <i class="fas fa-calendar-check text-primary me-2"></i>
+                                {{ form.instance.date|date:"Y-m-d" }}
+                            {% else %}
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                سيتم تعيين التاريخ تلقائياً (اليوم)
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">لا يمكن تعديل التاريخ، يتم تعيينه تلقائياً عند الإضافة.</small>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                            {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                        </button>
+                        <a href="{% url 'app:exchange_rate_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                            <i class="fas fa-times me-1"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form fields
+        const rateInput = document.getElementById('{{ form.rate.id_for_label }}');
+        if (rateInput) {
+            rateInput.classList.add('form-control', 'form-control-modern');
+            rateInput.style.borderRadius = '12px 0 0 12px';
+        }
+    });
+</script>
+{% endblock %}

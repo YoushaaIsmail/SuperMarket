@@ -1,0 +1,294 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-user-circle text-primary me-2"></i> حساب المورد
+        </h1>
+        <p class="page-subtitle mt-1">
+            {{ supplier.name }}
+            <span class="text-muted mx-2">|</span>
+            <i class="fas fa-phone text-muted me-1"></i> {{ supplier.phone|default:"-" }}
+            <span class="text-muted mx-1">|</span>
+            <i class="fas fa-envelope text-muted me-1"></i> {{ supplier.email|default:"-" }}
+            <span class="text-muted mx-1">|</span>
+            <i class="fas fa-map-marker-alt text-muted me-1"></i> {{ supplier.address|default:"-" }}
+        </p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:supplier_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+            <i class="fas fa-arrow-right me-1"></i> العودة إلى الموردين
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4a90d9, #357abd);">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-number">${{ total_purchases|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي المشتريات</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="stat-number">${{ total_payments|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي المدفوعات (دولار)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #17a2b8, #0f7a8a);">
+                <i class="fas fa-pound-sign"></i>
+            </div>
+            <div class="stat-number">{{ total_payments_sa|floatformat:2 }}</div>
+            <div class="stat-label">إجمالي المدفوعات (ل.س)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color: {% if balance > 0 %}#f4c542{% elif balance < 0 %}#dc3545{% else %}#4a5568{% endif %};">
+            <div class="stat-icon" style="background: {% if balance > 0 %}linear-gradient(135deg, #f4c542, #d4a024){% elif balance < 0 %}linear-gradient(135deg, #dc3545, #b02a37){% else %}linear-gradient(135deg, #6c757d, #495057){% endif %};">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+            <div class="stat-number" style="color: {% if balance > 0 %}#f4c542{% elif balance < 0 %}#dc3545{% else %}#b8c9e0{% endif %};">
+                ${{ balance|floatformat:2 }}
+            </div>
+            <div class="stat-label">
+                الرصيد (دولار)
+                <span class="badge {% if balance > 0 %}bg-soft-warning{% elif balance < 0 %}bg-soft-danger{% else %}bg-soft-secondary{% endif %} badge-soft">
+                    {{ balance_type }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices & Payments -->
+<div class="row g-4">
+    <!-- Invoices -->
+    <div class="col-md-6">
+        <div class="card-modern h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-file-invoice text-primary me-2"></i> فواتير الشراء</span>
+                <span class="badge bg-soft-primary badge-soft">{{ invoice_data|length }} فاتورة</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>التاريخ</th>
+                                <th>الإجمالي ($)</th>
+                                <th>الرصيد ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in invoice_data %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-white">{{ item.invoice.invoice_number }}</span>
+                                </td>
+                                <td>{{ item.invoice.date|date:"Y-m-d" }}</td>
+                                <td>${{ item.total|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge bg-soft-warning badge-soft">
+                                        ${{ item.balance|floatformat:2 }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="fas fa-file-invoice fa-2x mb-2 d-block"></i>
+                                    لا توجد فواتير لهذا المورد
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="col-md-6">
+        <div class="card-modern h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-money-bill-wave text-success me-2"></i> المدفوعات</span>
+                <span class="badge bg-soft-success badge-soft">{{ payments|length }} دفعة</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المبلغ ($)</th>
+                                <th>المبلغ (ل.س)</th>
+                                <th>طريقة الدفع</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.date|date:"Y-m-d" }}</td>
+                                <td>${{ payment.amountDollar|floatformat:2 }}</td>
+                                <td>{{ payment.amountSA|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge bg-soft-info badge-soft">{{ payment.get_method_display }}</span>
+                                </td>
+                                <td>{{ payment.notes|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="fas fa-money-bill-wave fa-2x mb-2 d-block"></i>
+                                    لا توجد مدفوعات لهذا المورد
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .card-modern {
+        background: #141e2d;
+        border: 1px solid #25324a;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .card-modern .card-header {
+        background: #0f1825;
+        padding: 12px 20px;
+        border-bottom: 1px solid #25324a;
+        color: #b8c9e0;
+        font-weight: 600;
+    }
+    .card-modern .card-body {
+        padding: 0;
+    }
+    .card-modern .table-modern {
+        color: #b8c9e0;
+        margin-bottom: 0;
+    }
+    .card-modern .table-modern thead th {
+        background: #0f1825;
+        border-bottom: 1px solid #25324a;
+        color: #8a9bb5;
+        font-weight: 500;
+        padding: 10px 15px;
+    }
+    .card-modern .table-modern tbody td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #1e2a3d;
+        vertical-align: middle;
+    }
+    .card-modern .table-modern tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .stat-card {
+        background: #141e2d;
+        border: 1px solid #25324a;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+    .stat-label {
+        color: #8a9bb5;
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+    .badge-soft {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .bg-soft-warning {
+        background: rgba(244, 197, 66, 0.15);
+        color: #f4c542;
+    }
+    .bg-soft-danger {
+        background: rgba(220, 53, 69, 0.15);
+        color: #f28b82;
+    }
+    .bg-soft-success {
+        background: rgba(40, 167, 69, 0.15);
+        color: #6fcf97;
+    }
+    .bg-soft-primary {
+        background: rgba(74, 144, 217, 0.15);
+        color: #6ea8fe;
+    }
+    .bg-soft-secondary {
+        background: rgba(108, 117, 125, 0.15);
+        color: #b8c9e0;
+    }
+    .bg-soft-info {
+        background: rgba(23, 162, 184, 0.15);
+        color: #63d4e0;
+    }
+    .page-title {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    .page-subtitle {
+        color: #8a9bb5;
+    }
+    .text-muted {
+        color: #6a7b95 !important;
+    }
+    .text-white {
+        color: #ffffff !important;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

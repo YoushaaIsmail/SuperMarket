@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-file-invoice text-primary me-2"></i> قائمة فواتير المبيعات
+        </h1>
+        <p class="page-subtitle mt-1">عرض وإدارة جميع فواتير المبيعات</p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:sales_invoice_add' %}" class="btn btn-primary-custom">
+            <i class="fas fa-plus me-1"></i> فاتورة جديدة
+        </a>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card-modern mb-4">
+    <div class="card-header d-flex align-items-center">
+        <i class="fas fa-search text-primary me-2"></i>
+        <span>بحث</span>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="search-input" class="form-label-modern">بحث</label>
+                <input type="text" name="q" id="search-input" class="form-control form-control-modern" 
+                       placeholder="رقم الفاتورة أو اسم العميل..." 
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary-custom w-100">
+                    <i class="fas fa-search me-1"></i> بحث
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'app:sales_invoice_list' %}" class="btn btn-outline-secondary w-100" style="border-color: #4a5568; color: #b8c9e0;">
+                    <i class="fas fa-undo me-1"></i> إعادة تعيين
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-list-ul text-primary me-2"></i> قائمة الفواتير</span>
+        <span class="badge bg-soft-primary badge-soft">{{ invoices|length }} فاتورة</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th><i class="fas fa-hashtag me-1"></i> رقم الفاتورة</th>
+                        <th><i class="fas fa-user me-1"></i> العميل</th>
+                        <th><i class="fas fa-calendar-alt me-1"></i> التاريخ</th>
+                        <th><i class="fas fa-dollar-sign me-1"></i> الإجمالي ($)</th>
+                        <th><i class="fas fa-percent me-1"></i> الخصم ($)</th>
+                        <th><i class="fas fa-check-circle me-1"></i> الصافي ($)</th>
+                        <th class="text-center"><i class="fas fa-cog me-1"></i> الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td>
+                            <a href="{% url 'app:invoice_detail' invoice.pk %}" class="text-primary-custom fw-semibold" style="text-decoration: none;">
+                                {{ invoice.invoice_number }}
+                            </a>
+                        </td>
+                        <td>{{ invoice.customer.name|default:"<span class='text-muted'>عميل نقدي</span>" }}</td>
+                        <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                        <td>$ {{ invoice.total_amount|floatformat:2|default:"0.00" }}</td>
+                        <td>$ {{ invoice.Discount|floatformat:2|default:"0.00" }}</td>
+                        <td>$ {{ invoice.total_amount|floatformat:2|add:invoice.Discount|floatformat:2|default:"0.00" }}</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <a href="{% url 'app:invoice_detail' invoice.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="عرض التفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'app:invoice_edit' invoice.pk %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="تعديل" style="border-color: #f39c12; color: #f4c542;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'app:invoice_delete' invoice.pk %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذه الفاتورة؟');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                            <span class="text-muted">لا توجد فواتير مبيعات مسجلة حالياً.</span>
+                            <div class="mt-3">
+                                <a href="{% url 'app:sales_invoice_add' %}" class="btn btn-primary-custom btn-sm">
+                                    <i class="fas fa-plus me-1"></i> إضافة أول فاتورة
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if is_paginated %}
+    <div class="card-footer bg-transparent border-0 py-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // دعم الضغط على Enter في حقل البحث
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

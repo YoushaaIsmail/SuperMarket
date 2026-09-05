@@ -1,0 +1,361 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}تعديل المنتج{% else %}إضافة منتج جديد{% endif %}
+        </h1>
+        <p class="page-subtitle mt-1">
+            {% if form.instance.pk %}تحديث بيانات المنتج{% else %}إدخال منتج جديد إلى المخزون{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center">
+        <i class="fas fa-box text-primary me-2"></i>
+        <span>بيانات المنتج</span>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <!-- حقل الصورة -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.image.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-image text-primary me-1"></i> صورة المنتج
+                    </label>
+                    {{ form.image }}
+                    {{ form.image.errors }}
+                    {% if form.instance and form.instance.image %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" style="max-height: 150px; max-width: 100%; border-radius: 8px; border: 1px solid #25324a;">
+                            <p class="text-muted small mt-1">الصورة الحالية</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-font text-primary me-1"></i> الاسم <span class="text-danger">*</span>
+                    </label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.category.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-tags text-primary me-1"></i> الفئة
+                    </label>
+                    {{ form.category }}
+                    {{ form.category.errors }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.unite.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-ruler text-primary me-1"></i> الوحدة
+                    </label>
+                    {{ form.unite }}
+                    {{ form.unite.errors }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.barcode.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-barcode text-primary me-1"></i> الباركود
+                    </label>
+                    <div class="input-group">
+                        {{ form.barcode }}
+                        <button type="button" class="btn btn-outline-custom" id="generate-barcode-btn" title="توليد باركود عشوائي">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="scan-barcode-btn" title="مسح باركود بالكاميرا">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">يمكنك إدخال الباركود يدوياً، توليد تلقائي، أو مسحه من الصورة.</small>
+                    {{ form.barcode.errors }}
+                    <div id="barcode-scan-status" class="mt-2"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.sale_price.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-dollar-sign text-primary me-1"></i> سعر البيع (قطاعي)
+                    </label>
+                    {{ form.sale_price }}
+                    {{ form.sale_price.errors }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.sale_priceAmount.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-dollar-sign text-primary me-1"></i> سعر البيع (جملة)
+                    </label>
+                    {{ form.sale_priceAmount }}
+                    {{ form.sale_priceAmount.errors }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.Pakage.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-cube text-primary me-1"></i> العبوة
+                    </label>
+                    {{ form.Pakage }}
+                    {{ form.Pakage.errors }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.Count_Alarm.id_for_label }}" class="form-label-modern">
+                        <i class="fas fa-exclamation-triangle text-primary me-1"></i> حد التنبيه
+                    </label>
+                    {{ form.Count_Alarm }}
+                    {{ form.Count_Alarm.errors }}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn btn-primary-custom">
+                    <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-1"></i>
+                    {% if form.instance.pk %}تحديث{% else %}إضافة{% endif %}
+                </button>
+                <a href="{% url 'app:product_list' %}" class="btn btn-outline-secondary" style="border-color: #4a5568; color: #b8c9e0;">
+                    <i class="fas fa-times me-1"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scanner Modal (Dark Theme) -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #141e2d; border: 1px solid #25324a;">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="scannerModalLabel">
+                    <i class="fas fa-camera text-primary me-2"></i> مسح الباركود
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader" style="width:100%; min-height: 250px; background: #0a121f; border-radius: 12px;"></div>
+                <div class="mt-3 text-center text-muted">
+                    <i class="fas fa-info-circle me-1"></i> قم بتوجيه الكاميرا نحو الباركود
+                </div>
+                <div class="mt-2">
+                    <label class="form-label-modern">أو ارفع صورة تحتوي على باركود</label>
+                    <input type="file" id="barcode-image-input" accept="image/*" class="form-control form-control-modern">
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-color: #4a5568; color: #b8c9e0;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- html5-qrcode Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Elements ---
+        const barcodeInput = document.getElementById('{{ form.barcode.id_for_label }}');
+        const scanBtn = document.getElementById('scan-barcode-btn');
+        const statusDiv = document.getElementById('barcode-scan-status');
+        const generateBtn = document.getElementById('generate-barcode-btn');
+        const fileInput = document.getElementById('barcode-image-input');
+        const modalElement = document.getElementById('scannerModal');
+        let scannerModal = null;
+        let html5QrCode = null;
+
+        // Initialize Bootstrap modal
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            scannerModal = new bootstrap.Modal(modalElement);
+        }
+
+        // --- Apply Bootstrap classes to form fields (excluding file input) ---
+        const formFields = document.querySelectorAll('input:not([type="file"]), select, textarea');
+        formFields.forEach(field => {
+            if (field.id && field.id.startsWith('id_')) {
+                field.classList.add('form-control', 'form-control-modern');
+            }
+        });
+
+        // --- 1. Generate random barcode ---
+        generateBtn.addEventListener('click', function() {
+            let newBarcode = '';
+            for (let i = 0; i < 13; i++) {
+                newBarcode += Math.floor(Math.random() * 10);
+            }
+            barcodeInput.value = newBarcode;
+            barcodeInput.dispatchEvent(new Event('input'));
+            checkBarcodeExists(newBarcode);
+        });
+
+        // --- 2. Check barcode existence (AJAX) ---
+        function checkBarcodeExists(barcode) {
+            if (!barcode || barcode.length < 4) {
+                statusDiv.innerHTML = '';
+                return;
+            }
+            fetch(`/app/check-barcode/?barcode=${encodeURIComponent(barcode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        statusDiv.innerHTML = `
+                            <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border-color: #f4c542; color: #f4c542;">
+                                ⚠️ هذا الباركود موجود بالفعل للمنتج: <strong>${data.product_name}</strong>
+                            </div>
+                        `;
+                    } else {
+                        statusDiv.innerHTML = `<div class="alert alert-success" style="background: rgba(40, 167, 69, 0.1); border-color: #6fcf97; color: #6fcf97;">✅ الباركود متاح.</div>`;
+                    }
+                })
+                .catch(() => {
+                    statusDiv.innerHTML = `<div class="alert alert-danger" style="background: rgba(220, 53, 69, 0.1); border-color: #f28b82; color: #f28b82;">خطأ في الاتصال بالخادم.</div>`;
+                });
+        }
+
+        barcodeInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val.length >= 4) {
+                checkBarcodeExists(val);
+            } else {
+                statusDiv.innerHTML = '';
+            }
+        });
+
+        // --- 3. Barcode Scanner (Camera) ---
+        scanBtn.addEventListener('click', function() {
+            if (!scannerModal) {
+                alert('مكتبة Bootstrap غير محملة.');
+                return;
+            }
+            scannerModal.show();
+
+            setTimeout(function() {
+                const readerElement = document.getElementById('reader');
+                if (!readerElement) {
+                    alert('عنصر القارئ غير موجود.');
+                    return;
+                }
+
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {}).then(() => {
+                        html5QrCode.clear();
+                    });
+                }
+
+                if (typeof Html5Qrcode === 'undefined') {
+                    alert('مكتبة المسح غير محملة.');
+                    scannerModal.hide();
+                    return;
+                }
+
+                html5QrCode = new Html5Qrcode("reader");
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.CODABAR
+                    ]
+                };
+
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanError
+                ).catch(function(err) {
+                    console.warn("Camera error:", err);
+                    alert('تعذر تشغيل الكاميرا. يمكنك رفع صورة تحتوي على الباركود.');
+                    if (fileInput) fileInput.click();
+                });
+
+                function onScanSuccess(decodedText) {
+                    barcodeInput.value = decodedText;
+                    statusDiv.innerHTML = `<div class="alert alert-info" style="background: rgba(23, 162, 184, 0.1); border-color: #63d4e0; color: #63d4e0;">تم مسح الباركود: ${decodedText}</div>`;
+                    if (html5QrCode) {
+                        html5QrCode.stop().catch(() => {}).then(() => {
+                            html5QrCode.clear();
+                        });
+                    }
+                    scannerModal.hide();
+                    checkBarcodeExists(decodedText);
+                }
+
+                function onScanError(err) {
+                    // Ignore
+                }
+
+                if (fileInput) {
+                    fileInput.onchange = function(e) {
+                        if (this.files.length) {
+                            const file = this.files[0];
+                            if (html5QrCode) {
+                                html5QrCode.stop().catch(() => {}).then(() => {
+                                    html5QrCode.clear();
+                                    html5QrCode.scanFile(file, true)
+                                        .then(decodedText => {
+                                            barcodeInput.value = decodedText;
+                                            statusDiv.innerHTML = `<div class="alert alert-info" style="background: rgba(23, 162, 184, 0.1); border-color: #63d4e0; color: #63d4e0;">تم مسح الباركود من الصورة: ${decodedText}</div>`;
+                                            scannerModal.hide();
+                                            checkBarcodeExists(decodedText);
+                                        })
+                                        .catch(err => {
+                                            alert('فشل قراءة الباركود من الصورة. تأكد من وضوحها.');
+                                        });
+                                });
+                            }
+                        }
+                    };
+                }
+
+            }, 600);
+        });
+
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {}).then(() => {
+                        html5QrCode.clear();
+                    });
+                }
+                if (fileInput) fileInput.value = '';
+            });
+        }
+
+        // --- 4. Keyboard shortcut: Ctrl+Shift+S to open scanner ---
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                if (scanBtn) scanBtn.click();
+            }
+        });
+
+        // --- 5. Tooltips (if any) ---
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

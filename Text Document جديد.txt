@@ -1,0 +1,557 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><u>x</u></b>
+!define foreign_key(x) <i>x</i>
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FEFECE
+    BorderColor #A80036
+    ArrowColor #A80036
+}
+
+' ==================== ENTITIES ====================
+
+class User {
+    + primary_key(id) : int
+    + username : varchar(150)
+    + email : varchar(254)
+    + first_name : varchar(150)
+    + last_name : varchar(150)
+    + is_staff : boolean
+    + is_active : boolean
+    + date_joined : datetime
+    + role : varchar(20)  [manager, accountant]
+    + phone : varchar(20)
+    + address : text
+}
+
+class Category {
+    + primary_key(id) : int
+    + name : varchar(100) [unique]
+    + description : text
+}
+
+class Unite {
+    + primary_key(id) : int
+    + name : varchar(100) [unique]
+}
+
+class Supplier {
+    + primary_key(id) : int
+    + name : varchar(200)
+    + phone : varchar(20)
+    + email : varchar(254)
+    + address : text
+}
+
+class Customer {
+    + primary_key(id) : int
+    + name : varchar(200)
+    + phone : varchar(20)
+    + email : varchar(254)
+    + address : text
+}
+
+class Product {
+    + primary_key(id) : int
+    + name : varchar(200)
+    + barcode : varchar(100) [unique]
+    + sale_price : decimal(10,2)
+    + sale_priceAmount : decimal(10,2)
+    + Pakage : int
+    + CountAlarm: int
+    + created_at : datetime
+    + updated_at : datetime
+    -- foreign keys --
+    + category_id : int
+    + unite_id : int
+}
+
+class BatchProduct {
+    + primary_key(id) : int
+    + batch_number : varchar(100)
+    + quantity : int
+    + expiration_date : date
+    + purchase_price : decimal(10,2)
+    + created_at : datetime
+    -- foreign key --
+    + product_id : int
+}
+
+class ExchangeRate {
+    + primary_key(id) : int
+    + date : date
+    + rate : decimal(12,2)
+}
+
+class PurchaseInvoice {
+    + primary_key(id) : int
+    + invoice_number : varchar(50) [unique]
+    + date : date
+    + is_paid : boolean
+    + notes : text
+    -- foreign keys --
+    + supplier_id : int
+    + exchange_rate_id : int
+}
+
+class PurchaseInvoiceDetail {
+    + primary_key(id) : int
+    + quantity : int
+    + Is_package : boolean
+    + price : decimal(10,2)
+    -- foreign keys --
+    + invoice_id : int
+    + product_id : int
+}
+
+class SalesInvoice {
+    + primary_key(id) : int
+    + invoice_number : varchar(50) [unique]
+    + date : date
+    + is_paid : boolean
+    + notes : text
+    -- foreign keys --
+    + customer_id : int
+    + exchange_rate_id : int
+}
+
+class SalesInvoiceDetail {
+    + primary_key(id) : int
+    + quantity : int
+    + price : decimal(10,2)
+    + Is_package : boolean
+    -- foreign keys --
+    + invoice_id : int
+    + product_id : int
+}
+
+class PaymentSales {
+    + primary_key(id) : int
+    + invoice_type : char(1)  [P/S]
+    + amount : decimal(12,2)
+    + date : date
+    + method : varchar(20)
+    + reference : varchar(100)
+    + notes : text
+    -- foreign keys --
+    + invoice_id : int  (FK to SalesInvoice)
+    + exchange_rate_used_id : int
+}
+
+class PaymentPurchase {
+    + primary_key(id) : int
+    + invoice_type : char(1)  [P/S]
+    + amount : decimal(12,2)
+    + date : date
+    + method : varchar(20)
+    + reference : varchar(100)
+    + notes : text
+    -- foreign keys --
+    + invoice_id : int  (FK to PurchaseInvoice)
+    + exchange_rate_used_id : int
+}
+
+class Employee {
+    + primary_key(id) : int
+    + name : varchar(200)
+    + position : varchar(100)
+    + default_base_salary : decimal(10,2)
+    + hire_date : date
+    + phone : varchar(20)
+    + email : varchar(254)
+    + bank_account : varchar(100)
+    + is_active : boolean
+    + created_at : datetime
+    -- foreign key (one-to-one) --
+    + user_id : int  (FK to User)
+}
+
+class ActionMoney_FullAll {
+    + primary_key(id) : int
+    + relationship : varchar(20)  [Allowance, Penalty]
+    + description : varchar(200)
+    + amount : decimal(10,2)
+    + created_at : datetime
+    -- foreign key --
+    + Employee_id : int
+}
+
+class SalaryPayment {
+    + primary_key(id) : int
+    + payment_date : date
+    + amount : decimal(10,2)
+    + payment_method : varchar(50)
+    + notes : text
+    + created_at : datetime
+    -- foreign key --
+    + Employee_id : int
+}
+
+class Action_Money_Month {
+    + primary_key(id) : int
+    + relationship : varchar(20)  [Bonus, advance, Deduction]
+    + description : varchar(200)
+    + amount : decimal(10,2)
+    + created_at : datetime
+    -- foreign key --
+    + Employee_id : int
+}
+
+class CostCategory {
+    + primary_key(id) : int
+    + name : varchar(100) [unique]
+    + description : text
+}
+
+class Cost {
+    + primary_key(id) : int
+    + amount : decimal(10,2)
+    + date : date
+    + description : text
+    -- foreign key --
+    + category_id : int
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' Product relationships
+Product "1" -- "0..*" Category : "belongs to"
+Product "1" -- "0..*" Unite : "measured in"
+Product "1" -- "0..*" BatchProduct : "has batches"
+
+' BatchProduct -> Product (already shown)
+
+' PurchaseInvoice relationships
+PurchaseInvoice "1" -- "0..*" Supplier : "from"
+PurchaseInvoice "1" -- "0..*" ExchangeRate : "uses rate"
+PurchaseInvoice "1" -- "0..*" PurchaseInvoiceDetail : "contains"
+
+' PurchaseInvoiceDetail relationships
+PurchaseInvoiceDetail "1" -- "0..*" Product : "purchases"
+
+' SalesInvoice relationships
+SalesInvoice "1" -- "0..*" Customer : "to"
+SalesInvoice "1" -- "0..*" ExchangeRate : "uses rate"
+SalesInvoice "1" -- "0..*" SalesInvoiceDetail : "contains"
+
+' SalesInvoiceDetail relationships
+SalesInvoiceDetail "1" -- "0..*" Product : "sells"
+
+' PaymentSales relationships
+PaymentSales "1" -- "0..*" SalesInvoice : "for"
+PaymentSales "1" -- "0..*" ExchangeRate : "uses rate"
+
+' PaymentPurchase relationships
+PaymentPurchase "1" -- "0..*" PurchaseInvoice : "for"
+PaymentPurchase "1" -- "0..*" ExchangeRate : "uses rate"
+
+' Employee relationships
+Employee "1" -- "1" User : "linked to"
+Employee "1" -- "0..*" ActionMoney_FullAll : "has full allowances"
+Employee "1" -- "0..*" SalaryPayment : "receives"
+Employee "1" -- "0..*" Action_Money_Month : "has monthly adjustments"
+
+' Cost relationships
+Cost "1" -- "0..*" CostCategory : "belongs to"
+
+@enduml
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+@startuml
+' ============================================
+' مخطط حالات الاستخدام - المدير (مدير النظام)
+' ============================================
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "المدير" as Manager
+
+' ============================================
+' الحزمة 1: المصادقة والأساسيات
+' ============================================
+package "المصادقة والأساسيات" {
+    usecase "تسجيل الدخول" as Login
+    usecase "فتح لوحة التحكم" as Dashboard
+    usecase "نسيان كلمة السر" as ForgotPass
+    usecase "إدخال الإيميل" as EnterEmail
+  
+  
+}
+
+' ============================================
+' الحزمة 2: إدارة المخزن
+' ============================================
+package "إدارة المخزن" {
+    usecase "إدارة المخزن" as ManageInv
+    usecase "مشاهدة إحصائيات المخزن" as InvStats
+ usecase "تغيير كلمة السر" as ChangePassWord
+    usecase "استعراض الفئات" as ViewCats
+    usecase "إنشاء فئة جديدة" as CreateCat
+    usecase "تعديل فئة" as EditCat
+    usecase "حذف فئة" as DeleteCat
+usecase "بحث فئة" as SearchCat
+    usecase "استعراض الوحدات" as ViewUnits
+    usecase "إضافة وحدة جديدة" as CreateUnit
+    usecase "تعديل وحدة" as EditUnit
+    usecase "حذف وحدة" as DeleteUnit
+usecase "بحث وحدة" as SearchUnit
+
+    usecase "استعراض الموردين" as ViewSupps
+    usecase "إضافة مورد جديد" as CreateSupp
+    usecase "تعديل مورد" as EditSupp
+    usecase "حذف مورد" as DeleteSupp
+    usecase "حساب رصيد المورد" as SuppBalance
+  usecase "بحث المورد" as SearchSupp
+    usecase "استعراض أسعار الصرف" as ViewRates
+    usecase "إضافة سعر جديد" as CreateRate
+    usecase "تعديل سعر" as EditRate
+    usecase "حذف سعر" as DeleteRate
+ usecase "بحث سعر" as SearchRate
+    usecase "استعراض فواتير الشراء" as ViewPurch
+    usecase "إضافة فاتورة شراء جديدة" as CreatePurch
+    usecase "إدخال عن طريق المسح (الإسكان)" as ScanPurch
+    usecase "تعديل فاتورة شراء" as EditPurch
+    usecase "حذف فاتورة شراء" as DeletePurch
+usecase "بحث فاتورة شراء" as SearchPurch
+    usecase "استعراض مدفوعات الشراء" as ViewPayments
+    usecase "البحث عن مدفوعات" as SearchPay
+    usecase "إضافة مدفوعات جديدة" as CreatePay
+    usecase "تعديل مدفوعات سابقة" as EditPay
+    usecase "حذف مدفوعات سابقة" as DeletePay
+usecase "بحث مدفوعات سابقة" as SearchPay
+}
+
+' ============================================
+' الحزمة 3: إدارة الموارد البشرية
+' ============================================
+package "إدارة الموارد البشرية" {
+    usecase "إدارة الموارد البشرية" as ManageHR
+    usecase "استعراض لوحة الموارد البشرية" as HRDash
+
+    usecase "استعراض الموظفين" as ViewEmps
+    usecase "إضافة موظف جديد" as CreateEmp
+    usecase "تعديل موظف سابق" as EditEmp
+    usecase "حذف موظف سابق" as DeleteEmp
+    usecase "إدارة العلاوات والعقوبات" as AddBonPen
+    usecase "إدارة المكافآت والخصومات" as AddRewDed
+    usecase "إدارة وصل صرف الراتب" as AddSalaryVoucher
+    usecase "جرد الرواتب" as PayrollAudit
+
+    usecase "إدارة المستخدمين" as ManageUsers
+    usecase "إضافة مستخدم جديد" as CreateUser
+    usecase "تعديل مستخدم قديم" as EditUser
+    usecase "حذف مستخدم قديم" as DeleteUser
+usecase "تغيير كلمة السر" as ChangePassWordUser
+
+    usecase "عرض التكاليف" as ViewCosts
+    usecase "إضافة تكاليف جديدة" as CreateCost
+    usecase "تعديل تكاليف سابقة" as EditCost
+    usecase "حذف تكاليف سابقة" as DeleteCost
+    usecase "إضافة فاتورة للتكلفة (وحذف/تعديل)" as ManageCostInvoice
+}
+
+' ============================================
+' الحزمة 4: التقارير المالية
+' ============================================
+package "التقارير المالية" {
+    usecase "استعراض الإحصائيات المالية" as FinStats
+}
+
+' ============================================
+' علاقات الممثل (المدير) بحالات الاستخدام الرئيسية
+' ============================================
+Manager --> Login
+Manager --> ForgotPass
+
+
+
+
+
+
+' ============================================
+' علاقات Include و Extend داخل المصادقة
+' ============================================
+Login <.. Dashboard : <<include>>
+ForgotPass ..> EnterEmail : <<extend>>
+FinStats ..> Dashboard : <<extend>>
+ManageHR ..> Dashboard : <<extend>>
+ManageInv ..> Dashboard : <<extend>>
+' ============================================
+' علاقات Include و Extend داخل إدارة المخزن
+' ============================================
+ManageInv ..> InvStats : <<extend>>
+ManageInv ..> ChangePassWord: <<extend>>
+
+ManageInv ..> ViewCats : <<extend>>
+ViewCats ..> CreateCat : <<extend>>
+ViewCats ..> EditCat : <<extend>>
+ViewCats ..> DeleteCat : <<extend>>
+ViewCats ..> SearchCat : <<extend>>
+
+ManageInv ..> ViewUnits : <<extend>>
+ViewUnits ..> CreateUnit : <<extend>>
+ViewUnits ..> EditUnit : <<extend>>
+ViewUnits ..> DeleteUnit : <<extend>>
+ViewUnits ..> SearchUnit : <<extend>>
+
+ManageInv ..> ViewSupps : <<extend>>
+ViewSupps ..> CreateSupp : <<extend>>
+ViewSupps ..> EditSupp : <<extend>>
+ViewSupps ..> DeleteSupp : <<extend>>
+ViewSupps ..> SearchSupp : <<extend>>
+ViewSupps ..> SuppBalance : <<extend>>
+
+ManageInv ..> ViewRates : <<extend>>
+ViewRates ..> CreateRate : <<extend>>
+ViewRates ..> EditRate : <<extend>>
+ViewRates ..> DeleteRate : <<extend>>
+ViewRates ..> SearchRate : <<extend>>
+
+ManageInv ..> ViewPurch : <<extend>>
+ViewPurch ..> CreatePurch : <<extend>>
+CreatePurch ..> ScanPurch : <<extend>>
+ViewPurch ..> EditPurch : <<extend>>
+ViewPurch ..> DeletePurch : <<extend>>
+ViewPurch ..> SearchPurch : <<extend>>
+
+ManageInv ..> ViewPayments : <<extend>>
+ViewPayments ..> SearchPay : <<extend>>
+ViewPayments ..> CreatePay : <<extend>>
+ViewPayments ..> EditPay : <<extend>>
+ViewPayments ..> DeletePay : <<extend>>
+ViewPayments ..> SearchPay: <<extend>>
+
+' (حالة تغيير كلمة المرور ضمن المخزن حسب الطلب، لكنها مرتبطة مباشرة بالمدير أعلاه)
+
+' ============================================
+' علاقات Include و Extend داخل الموارد البشرية
+' ============================================
+ManageHR ..> HRDash : <<extend>>
+
+ManageHR ..> ViewEmps : <<extend>>
+ViewEmps ..> CreateEmp : <<extend>>
+ViewEmps ..> EditEmp : <<extend>>
+ViewEmps ..> DeleteEmp : <<extend>>
+ViewEmps ..> AddBonPen : <<extend>>
+ViewEmps ..> AddRewDed : <<extend>>
+ViewEmps ..> AddSalaryVoucher : <<extend>>
+ViewEmps ..> PayrollAudit : <<extend>>
+
+ManageHR ..> ManageUsers : <<extend>>
+ManageUsers ..> CreateUser : <<extend>>
+ManageUsers ..> EditUser : <<extend>>
+ManageUsers ..> DeleteUser : <<extend>>
+ManageUsers ..> ChangePassWordUser: <<extend>>
+
+
+ManageHR ..> ViewCosts : <<extend>>
+ViewCosts ..> CreateCost : <<extend>>
+ViewCosts ..> EditCost : <<extend>>
+ViewCosts ..> DeleteCost : <<extend>>
+ViewCosts ..> ManageCostInvoice : <<extend>>
+
+@enduml
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+@startuml
+' ============================================
+' مخطط حالات الاستخدام - المحاسب
+' ============================================
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "محاسب" as Accountant
+
+' ============================================
+' الحزمة 1: المصادقة والأساسيات
+' ============================================
+package "المصادقة" {
+    usecase "تسجيل الدخول" as Login
+    usecase "نسيان كلمة السر" as ForgotPass
+    usecase "إدخال الإيميل" as EnterEmail
+    usecase "تغيير كلمة السر" as ChangePass
+}
+
+' ============================================
+' الحزمة 2: إدارة العملاء
+' ============================================
+package "إدارة العملاء" {
+    usecase "استعراض العملاء" as ViewCustomers
+    usecase "إنشاء عميل جديد" as CreateCustomer
+    usecase "تعديل عميل" as EditCustomer
+    usecase "حذف عميل" as DeleteCustomer
+  usecase "بحث عميل" as SearchCustomer
+}
+
+' ============================================
+' الحزمة 3: إدارة فواتير المبيع
+' ============================================
+package "إدارة فواتير المبيع" {
+    usecase "استعراض فواتير المبيع" as ViewSalesInvoices
+    usecase "إنشاء فاتورة جديدة" as CreateSalesInvoice
+    usecase "المسح باستخدام السكانار" as ScanBarcode
+    usecase "التحقق من الكمية" as VerifyQuantity
+    usecase "التعديل على فاتورة" as EditSalesInvoice
+    usecase "حذف فاتورة" as DeleteSalesInvoice
+    usecase "عرض تفاصيل فاتورة" as ViewInvoiceDetails
+    usecase "طباعة" as PrintInvoice
+usecase "بحث فاتورة" as SearchInvoice
+}
+
+' ============================================
+' الحزمة 4: إدارة مدفوعات المبيع
+' ============================================
+package "إدارة مدفوعات المبيع" {
+    usecase "استعراض مدفوعات المبيع" as ViewSalesPayments
+    usecase "إنشاء مدفوعات" as CreatePayment
+    usecase "تعديل مدفوعات" as EditPayment
+    usecase "حذف مدفوعات" as DeletePayment
+usecase "بحث مدفوعات" as SearchPayment
+}
+
+' ============================================
+' علاقات الممثل (المحاسب) بحالات الاستخدام الرئيسية
+' ============================================
+Accountant --> Login
+Accountant --> ForgotPass
+
+
+' ============================================
+' علاقات Include و Extend داخل المصادقة
+' ============================================
+Login <.. ChangePass : <<include>>
+ForgotPass ..> EnterEmail : <<extend>>
+
+' ============================================
+' علاقات Include و Extend داخل العملاء
+' ============================================
+Login <.. ViewCustomers : <<include>>
+ViewCustomers ..> CreateCustomer : <<extend>>
+ViewCustomers ..> EditCustomer : <<extend>>
+ViewCustomers ..> DeleteCustomer : <<extend>>
+ViewCustomers ..> SearchCustomer : <<extend>>
+
+' ============================================
+' علاقات Include و Extend داخل فواتير المبيع
+' ============================================
+Login <.. ViewSalesInvoices : <<include>>
+ViewSalesInvoices ..> CreateSalesInvoice : <<extend>>
+CreateSalesInvoice ..> ScanBarcode : <<extend>>
+CreateSalesInvoice <.. VerifyQuantity : <<include>>
+ViewSalesInvoices ..> EditSalesInvoice : <<extend>>
+ViewSalesInvoices ..> DeleteSalesInvoice : <<extend>>
+ViewSalesInvoices ..> ViewInvoiceDetails : <<extend>>
+ViewInvoiceDetails ..> PrintInvoice : <<extend>>
+ViewSalesInvoices ..> SearchInvoice : <<extend>>
+' ============================================
+' علاقات Include و Extend داخل مدفوعات المبيع
+' ============================================
+Login <.. ViewSalesPayments : <<include>>
+ViewSalesPayments ..> CreatePayment : <<extend>>
+ViewSalesPayments ..> EditPayment : <<extend>>
+ViewSalesPayments ..> DeletePayment : <<extend>>
+ViewSalesPayments ..> SearchPayment : <<extend>>
+
+@enduml

@@ -1,0 +1,148 @@
+{% extends 'base_sidebar.html' %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-0">
+            <i class="fas fa-dollar-sign text-primary me-2"></i> أسعار الصرف
+        </h1>
+        <p class="page-subtitle mt-1">إدارة سعر صرف الدولار مقابل الليرة السورية</p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+        <a href="{% url 'app:exchange_rate_add' %}" class="btn btn-primary-custom">
+            <i class="fas fa-plus me-1"></i> إضافة سعر جديد
+        </a>
+    </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm rounded-4 border-0 mb-4" role="alert" style="background: #141e2d; color: #e2e8f0; border: 1px solid #25324a !important;">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle text-success{% elif message.tags == 'error' %}times-circle text-danger{% elif message.tags == 'warning' %}exclamation-triangle text-warning{% else %}info-circle text-info{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1);"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Search & Filter (Optional) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-4">
+        <form method="get" action="" class="d-flex">
+            <input type="text" name="q" class="form-control form-control-modern" placeholder="بحث عن تاريخ..." value="{{ request.GET.q|default:'' }}">
+            <button class="btn btn-primary-custom ms-2" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6 col-lg-8 text-md-end">
+        <span class="text-muted small">إجمالي الأسعار: <strong class="text-white">{{ rates|length }}</strong></span>
+        {% if latest_rate %}
+            <span class="text-muted small ms-3">
+                <i class="fas fa-arrow-up text-success me-1"></i> آخر سعر: <strong class="text-white">{{ latest_rate.rate }}</strong> ({{ latest_rate.date|date:"Y-m-d" }})
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rates Table -->
+<div class="card-modern">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-list-ul text-primary me-2"></i> قائمة أسعار الصرف</span>
+        <span class="badge bg-soft-primary badge-soft">{{ rates|length }} سعر</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col"><i class="fas fa-calendar-alt me-1"></i> التاريخ</th>
+                        <th scope="col"><i class="fas fa-dollar-sign me-1"></i> سعر الدولار (ل.س)</th>
+                        <th scope="col" class="text-center"><i class="fas fa-cog me-1"></i> الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rate in rates %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ rate.date|date:"Y-m-d" }}</td>
+                        <td><span class="fw-semibold text-white">{{ rate.rate }}</span></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <a href="{% url 'app:exchange_rate_edit' rate.pk %}"
+                                   class="btn btn-sm btn-outline-custom"
+                                   data-bs-toggle="tooltip" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'app:exchange_rate_delete' rate.pk %}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   data-bs-toggle="tooltip" title="حذف"
+                                   onclick="return confirm('هل أنت متأكد من حذف سعر الصرف هذا؟');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <i class="fas fa-money-bill-wave fa-3x text-muted mb-3 d-block"></i>
+                            <span class="text-muted">لا توجد أسعار صرف مسجلة حالياً.</span>
+                            <div class="mt-3">
+                                <a href="{% url 'app:exchange_rate_add' %}" class="btn btn-primary-custom btn-sm">
+                                    <i class="fas fa-plus me-1"></i> إضافة أول سعر
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if is_paginated %}
+    <div class="card-footer bg-transparent border-0 py-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+<!-- Extra script for tooltips -->
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

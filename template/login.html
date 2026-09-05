@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - نظام المحاسبة</title>
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Font (Cairo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #070d18;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cairo', 'Tahoma', sans-serif;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* خلفية مزخرفة (دائرية) */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(74, 144, 217, 0.05) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 50%, rgba(74, 144, 217, 0.05) 0%, transparent 60%);
+            z-index: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: #141e2d;
+            border: 1px solid #25324a;
+            border-radius: 24px;
+            padding: 45px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .login-header .logo {
+            width: 85px;
+            height: 85px;
+            background: linear-gradient(135deg, #4a90d9, #357abd);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 2.8rem;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(74, 144, 217, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .login-header .logo:hover {
+            transform: scale(1.05);
+        }
+        .login-header h3 {
+            color: #ffffff;
+            font-weight: 800;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+        }
+        .login-header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #b8c9e0;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group label i {
+            color: #4a90d9;
+            margin-left: 6px;
+        }
+        .form-group .input-group-text {
+            background: #0f1825;
+            border: 2px solid #25324a;
+            border-left: none;
+            color: #6b7f9a;
+            border-radius: 12px 0 0 12px;
+            padding: 12px 16px;
+        }
+        .form-group .form-control {
+            border: 2px solid #25324a;
+            border-right: none;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            border-radius: 0 12px 12px 0;
+            background: #0f1825;
+            color: #e2e8f0;
+        }
+        .form-group .form-control:focus {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.12);
+            background: #141e2d;
+            color: #ffffff;
+        }
+        .form-group .form-control::placeholder {
+            color: #6b7f9a;
+        }
+        .form-group .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        /* Button */
+        .btn-login {
+            background: linear-gradient(135deg, #4a90d9, #357abd);
+            border: none;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            width: 100%;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(74, 144, 217, 0.3);
+            letter-spacing: 0.5px;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #5a9ee9, #3d86c9);
+            box-shadow: 0 8px 28px rgba(74, 144, 217, 0.45);
+            color: #fff;
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        /* Alert */
+        .alert {
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: rgba(220, 53, 69, 0.08);
+            border: 1px solid #dc3545;
+            color: #f28b82;
+            padding: 12px 18px;
+            margin-bottom: 22px;
+        }
+        .alert i {
+            color: #dc3545;
+        }
+
+        /* Footer */
+        .footer-text {
+            margin-top: 25px;
+            text-align: center;
+            color: #6b7f9a;
+            font-size: 0.85rem;
+            font-weight: 400;
+        }
+        .footer-text a {
+            color: #4a90d9;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .footer-text a:hover {
+            color: #6ea8fe;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 22px;
+                border-radius: 20px;
+            }
+            .login-header .logo {
+                width: 65px;
+                height: 65px;
+                font-size: 2.2rem;
+            }
+            .login-header h3 {
+                font-size: 1.5rem;
+            }
+            .btn-login {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+
+            <!-- Header -->
+            <div class="login-header">
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <h3>نظام المحاسبة</h3>
+                <p>تسجيل الدخول إلى لوحة التحكم</p>
+            </div>
+
+            <!-- Errors -->
+            {% if form.errors %}
+                <div class="alert d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <div>اسم المستخدم أو كلمة المرور غير صحيحة.</div>
+                </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> اسم المستخدم
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" name="username" class="form-control" id="username" 
+                               placeholder="أدخل اسم المستخدم" required autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> كلمة المرور
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                        <input type="password" name="password" class="form-control" id="password" 
+                               placeholder="أدخل كلمة المرور" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i> دخول
+                </button>
+            </form>
+<div class="mt-3 text-center">
+    <a href="{% url 'app:password_reset_request' %}">نسيت كلمة المرور؟</a>
+</div>
+            <!-- Footer -->
+            <div class="footer-text">
+                &copy; 2026 نظام المحاسبة - جميع الحقوق محفوظة
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
